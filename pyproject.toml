@@ -260,23 +260,23 @@ azure-identity = ["azure-identity==1.25.3"]
 termux = [
   # Baseline Android / Termux path for reliable fresh installs.
   "python-telegram-bot[webhooks]==22.6",
-  "hermes-agent[cron]",
-  "hermes-agent[cli]",
-  "hermes-agent[mcp]",
-  "hermes-agent[honcho]",
-  "hermes-agent[acp]",
+  "VEDANT[cron]",
+  "VEDANT[cli]",
+  "VEDANT[mcp]",
+  "VEDANT[honcho]",
+  "VEDANT[acp]",
 ]
 termux-all = [
   # Best-effort "install all" profile for Termux. Same policy as [all]:
   # only includes extras that aren't covered by `tools/lazy_deps.py`.
   # Backends like telegram/slack/dingtalk/feishu/honcho lazy-install at
   # first use, so they're no longer eager-installed here.
-  "hermes-agent[termux]",
-  "hermes-agent[google]",
-  "hermes-agent[homeassistant]",
-  "hermes-agent[sms]",
-  "hermes-agent[web]",
-  "hermes-agent[pty]",
+  "VEDANT[termux]",
+  "VEDANT[google]",
+  "VEDANT[homeassistant]",
+  "VEDANT[sms]",
+  "VEDANT[web]",
+  "VEDANT[pty]",
 ]
 dingtalk = ["dingtalk-stream==0.24.3", "alibabacloud-dingtalk==2.2.42", "qrcode==7.4.2"]
 feishu = ["lark-oapi==1.6.8", "qrcode==7.4.2"]
@@ -329,16 +329,16 @@ all = [
   # [all], `uv sync --locked` on Windows tried to build it from sdist
   # and failed on `make`. Lazy-install routes that build to first use,
   # where the user is expected to have a toolchain available.
-  "hermes-agent[cron]",
-  "hermes-agent[cli]",
-  "hermes-agent[pty]",
-  "hermes-agent[mcp]",
-  "hermes-agent[homeassistant]",
-  "hermes-agent[sms]",
-  "hermes-agent[acp]",
-  "hermes-agent[google]",
-  "hermes-agent[web]",
-  "hermes-agent[youtube]",
+  "VEDANT[cron]",
+  "VEDANT[cli]",
+  "VEDANT[pty]",
+  "VEDANT[mcp]",
+  "VEDANT[homeassistant]",
+  "VEDANT[sms]",
+  "VEDANT[acp]",
+  "VEDANT[google]",
+  "VEDANT[web]",
+  "VEDANT[youtube]",
 ]
 
 [build-system]
@@ -348,9 +348,8 @@ build-backend = "setuptools.build_meta"
 [project.scripts]
 vedant = "hermes_cli.main:main"
 localstreet = "hermes_cli.main:main"
-hermes = "hermes_cli.main:main"
-hermes-agent = "run_agent:main"
-hermes-acp = "acp_adapter.entry:main"
+vedant-agent = "run_agent:main"
+vedant-acp = "acp_adapter.entry:main"
 
 [tool.uv]
 override-dependencies = [

@@ -12,6 +12,18 @@ because its dispatch is tightly coupled to module-level ``cmd_*`` functions.
 
 import argparse
 
+from hermes_cli.brand import CLI_NAME, HOME_DIRNAME, PRODUCT_NAME, user_facing_text
+
+
+class BrandedArgumentParser(argparse.ArgumentParser):
+    """Argument parser that keeps legacy implementation names out of CLI UX."""
+
+    def format_help(self) -> str:
+        return user_facing_text(super().format_help())
+
+    def format_usage(self) -> str:
+        return user_facing_text(super().format_usage())
+
 
 # `--profile` / `-p` is consumed by ``main._apply_profile_override`` before
 # argparse runs (it sets ``HERMES_HOME`` and strips itself from ``sys.argv``),
@@ -79,7 +91,7 @@ Examples:
 
 For more help on a command:
     hermes <command> --help
-"""
+""".replace("hermes", CLI_NAME).replace("Hermes", PRODUCT_NAME)
 
 
 def build_top_level_parser():
@@ -89,9 +101,9 @@ def build_top_level_parser():
     ``chat_parser.set_defaults(func=cmd_chat)`` and continues registering
     other subparsers via ``subparsers.add_parser(...)``.
     """
-    parser = argparse.ArgumentParser(
-        prog="hermes",
-        description="Hermes Agent - AI assistant with tool-calling capabilities",
+    parser = BrandedArgumentParser(
+        prog=CLI_NAME,
+        description=f"{PRODUCT_NAME} Agent - AI assistant with tool-calling capabilities",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_EPILOGUE,
     )
@@ -134,7 +146,7 @@ def build_top_level_parser():
         default=None,
         help=(
             "Model override for this invocation (e.g. anthropic/claude-sonnet-4.6). "
-            "Applies to -z/--oneshot and --tui. Also settable via HERMES_INFERENCE_MODEL env var."
+            "Applies to -z/--oneshot and --tui."
         ),
     )
     _inherited_flag(
@@ -144,7 +156,7 @@ def build_top_level_parser():
         help=(
             "Provider override for this invocation (e.g. openrouter, anthropic). "
             "Applies to -z/--oneshot and --tui. The persistent provider lives in config.yaml "
-            "under model.provider — use `hermes setup` or edit the file to change it."
+            f"under model.provider — use `{CLI_NAME} setup` or edit the file to change it."
         ),
     )
     parser.add_argument(
@@ -190,8 +202,8 @@ def build_top_level_parser():
         default=False,
         help=(
             "Auto-approve any unseen shell hooks declared in config.yaml "
-            "without a TTY prompt.  Equivalent to HERMES_ACCEPT_HOOKS=1 or "
-            "hooks_auto_accept: true in config.yaml.  Use on CI / headless "
+            "without a TTY prompt. Equivalent to hooks_auto_accept: true in "
+            "config.yaml. Use on CI / headless "
             "runs that can't prompt."
         ),
     )
@@ -222,7 +234,7 @@ def build_top_level_parser():
         "--ignore-user-config",
         action="store_true",
         default=False,
-        help="Ignore ~/.hermes/config.yaml and fall back to built-in defaults (credentials in .env are still loaded)",
+        help=f"Ignore ~/{HOME_DIRNAME}/config.yaml and fall back to built-in defaults (credentials in .env are still loaded)",
     )
     _inherited_flag(
         parser,
@@ -269,7 +281,7 @@ def build_top_level_parser():
     chat_parser = subparsers.add_parser(
         "chat",
         help="Interactive chat with the agent",
-        description="Start an interactive chat session with Hermes Agent",
+        description=f"Start an interactive chat session with {PRODUCT_NAME} Agent",
     )
     chat_parser.add_argument(
         "-q", "--query", help="Single query (non-interactive mode)"
@@ -367,8 +379,7 @@ def build_top_level_parser():
         default=argparse.SUPPRESS,
         help=(
             "Auto-approve any unseen shell hooks declared in config.yaml "
-            "without a TTY prompt (see also HERMES_ACCEPT_HOOKS env var and "
-            "hooks_auto_accept: in config.yaml)."
+            "without a TTY prompt (see also hooks_auto_accept: true in config.yaml)."
         ),
     )
     chat_parser.add_argument(
@@ -403,7 +414,7 @@ def build_top_level_parser():
         "--ignore-user-config",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="Ignore ~/.hermes/config.yaml and fall back to built-in defaults (credentials in .env are still loaded). Useful for isolated CI runs, reproduction, and third-party integrations.",
+        help=f"Ignore ~/{HOME_DIRNAME}/config.yaml and fall back to built-in defaults (credentials in .env are still loaded). Useful for isolated CI runs, reproduction, and third-party integrations.",
     )
     _inherited_flag(
         chat_parser,
@@ -417,7 +428,7 @@ def build_top_level_parser():
         "--safe-mode",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="Troubleshooting mode: disable ALL customizations — user config, AGENTS.md/memory injection, plugins, and MCP servers (implies --ignore-user-config and --ignore-rules). Use to isolate whether a problem comes from your setup or from Hermes itself.",
+        help=f"Troubleshooting mode: disable ALL customizations — user config, AGENTS.md/memory injection, plugins, and MCP servers (implies --ignore-user-config and --ignore-rules). Use to isolate whether a problem comes from your setup or from {PRODUCT_NAME} itself.",
     )
     chat_parser.add_argument(
         "--source",

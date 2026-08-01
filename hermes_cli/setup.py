@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 from hermes_cli.nous_subscription import get_nous_subscription_features
+from hermes_cli.brand import CLI_NAME, PRODUCT_NAME
 from tools.tool_backend_helpers import managed_nous_tools_enabled
 from hermes_constants import get_optional_skills_dir
 
@@ -183,19 +184,19 @@ def is_interactive_stdin() -> bool:
 def print_noninteractive_setup_guidance(reason: str | None = None) -> None:
     """Print guidance for headless/non-interactive setup flows."""
     print()
-    print(color("⚕ Hermes Setup — Non-interactive mode", Colors.CYAN, Colors.BOLD))
+    print(color(f"⚕ {PRODUCT_NAME} Setup — Non-interactive mode", Colors.CYAN, Colors.BOLD))
     print()
     if reason:
         print_info(reason)
     print_info("The interactive wizard cannot be used here.")
     print()
-    print_info("Configure Hermes using environment variables or config commands:")
-    print_info("  hermes config set model.provider custom")
-    print_info("  hermes config set model.base_url http://localhost:8080/v1")
-    print_info("  hermes config set model.default your-model-name")
+    print_info(f"Configure {PRODUCT_NAME} using environment variables or config commands:")
+    print_info(f"  {CLI_NAME} config set model.provider custom")
+    print_info(f"  {CLI_NAME} config set model.base_url http://localhost:8080/v1")
+    print_info(f"  {CLI_NAME} config set model.default your-model-name")
     print()
     print_info("Or set OPENROUTER_API_KEY / OPENAI_API_KEY in your environment.")
-    print_info("Run 'hermes setup' in an interactive terminal to use the full wizard.")
+    print_info(f"Run '{CLI_NAME} setup' in an interactive terminal to use the full wizard.")
     print()
 
 
@@ -675,17 +676,17 @@ def _print_setup_summary(config: dict, hermes_home):
     print()
     print(color("📝 To edit your configuration:", Colors.CYAN, Colors.BOLD))
     print()
-    print(f"   {color('hermes setup', Colors.GREEN)}          Re-run the full wizard")
-    print(f"   {color('hermes setup model', Colors.GREEN)}    Change model/provider")
-    print(f"   {color('hermes setup terminal', Colors.GREEN)} Change terminal backend")
-    print(f"   {color('hermes setup gateway', Colors.GREEN)}  Configure messaging")
-    print(f"   {color('hermes setup tools', Colors.GREEN)}    Configure tool providers")
+    print(f"   {color(f'{CLI_NAME} setup', Colors.GREEN)}          Re-run the full wizard")
+    print(f"   {color(f'{CLI_NAME} setup model', Colors.GREEN)}    Change model/provider")
+    print(f"   {color(f'{CLI_NAME} setup terminal', Colors.GREEN)} Change terminal backend")
+    print(f"   {color(f'{CLI_NAME} setup gateway', Colors.GREEN)}  Configure messaging")
+    print(f"   {color(f'{CLI_NAME} setup tools', Colors.GREEN)}    Configure tool providers")
     print()
-    print(f"   {color('hermes config', Colors.GREEN)}         View current settings")
+    print(f"   {color(f'{CLI_NAME} config', Colors.GREEN)}         View current settings")
     print(
-        f"   {color('hermes config edit', Colors.GREEN)}    Open config in your editor"
+        f"   {color(f'{CLI_NAME} config edit', Colors.GREEN)}    Open config in your editor"
     )
-    print(f"   {color('hermes config set <key> <value>', Colors.GREEN)}")
+    print(f"   {color(f'{CLI_NAME} config set <key> <value>', Colors.GREEN)}")
     print("                          Set a specific value")
     print()
     print("   Or edit the files directly:")
@@ -697,9 +698,9 @@ def _print_setup_summary(config: dict, hermes_home):
     print()
     print(color("🚀 Ready to go!", Colors.CYAN, Colors.BOLD))
     print()
-    print(f"   {color('hermes', Colors.GREEN)}              Start chatting")
-    print(f"   {color('hermes gateway', Colors.GREEN)}      Start messaging gateway")
-    print(f"   {color('hermes doctor', Colors.GREEN)}       Check for issues")
+    print(f"   {color(CLI_NAME, Colors.GREEN)}              Start chatting")
+    print(f"   {color(f'{CLI_NAME} gateway', Colors.GREEN)}      Start messaging gateway")
+    print(f"   {color(f'{CLI_NAME} doctor', Colors.GREEN)}       Check for issues")
     print()
 
 
@@ -2981,7 +2982,7 @@ def run_setup_wizard(args):
                         Colors.MAGENTA,
                     )
                 )
-                print(color(f"│     ⚕ Hermes Setup — {label:<34s} │", Colors.MAGENTA))
+                print(color(f"│     ⚕ {PRODUCT_NAME} Setup — {label:<34s} │", Colors.MAGENTA))
                 print(
                     color(
                         "└─────────────────────────────────────────────────────────┘",
@@ -3017,7 +3018,7 @@ def run_setup_wizard(args):
     )
     print(
         color(
-            "│             ⚕ Hermes Agent Setup Wizard                │", Colors.MAGENTA
+            f"│             ⚕ {PRODUCT_NAME} Agent Setup Wizard                │", Colors.MAGENTA
         )
     )
     print(
@@ -3028,7 +3029,7 @@ def run_setup_wizard(args):
     )
     print(
         color(
-            "│  Let's configure your Hermes Agent installation.       │", Colors.MAGENTA
+            f"│  Let's configure your {PRODUCT_NAME} Agent installation.       │", Colors.MAGENTA
         )
     )
     print(
@@ -3057,11 +3058,11 @@ def run_setup_wizard(args):
 
         print()
         print_header("Reconfigure")
-        print_success("You already have Hermes configured.")
+        print_success(f"You already have {PRODUCT_NAME} configured.")
         print_info("Running the full wizard — each prompt shows your current value.")
         print_info("Press Enter to keep it, or type a new value to change it.")
         print_info("")
-        print_info("Tip: jump straight to a section with 'hermes setup model|terminal|")
+        print_info(f"Tip: jump straight to a section with '{CLI_NAME} setup model|terminal|")
         print_info("     gateway|tools|agent', or fill only missing items with --quick.")
         # Fall through to the "Full Setup — run all sections" block below.
         # --reconfigure is now the default on existing installs; the flag

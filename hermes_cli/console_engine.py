@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Literal, NoReturn, Sequence
 
+from hermes_cli.brand import CLI_NAME, PRODUCT_NAME
 from tools.ansi_strip import strip_ansi as _strip_ansi
 
 
@@ -147,7 +148,7 @@ def _format_job(job: dict, action: str) -> str:
 
 
 def _parser_root() -> tuple[_ArgumentParser, argparse._SubParsersAction]:
-    parser = _ArgumentParser(prog="hermes", add_help=False)
+    parser = _ArgumentParser(prog=CLI_NAME, add_help=False)
     subparsers = parser.add_subparsers(dest="_console_command")
     return parser, subparsers
 
@@ -494,7 +495,7 @@ class HermesConsoleEngine:
 
         try:
             tokens = _split_line(raw_line)
-            if tokens and tokens[0] == "hermes":
+            if tokens and tokens[0] in {"hermes", CLI_NAME}:
                 tokens = tokens[1:]
             if not tokens:
                 return self._help_result()
@@ -1595,11 +1596,11 @@ def run_console_repl(
 
     engine = HermesConsoleEngine()
     if interactive:
-        print("Hermes Console. Type `help` for commands, `exit` to quit.", file=stdout)
+        print(f"{PRODUCT_NAME} Console. Type `help` for commands, `exit` to quit.", file=stdout)
 
     while True:
         if interactive:
-            print("hermes> ", end="", file=stdout, flush=True)
+            print(f"{CLI_NAME}> ", end="", file=stdout, flush=True)
         line = stdin.readline()
         if line == "":
             if interactive:

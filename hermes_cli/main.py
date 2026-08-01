@@ -73,6 +73,8 @@ suppress_platform_ver_console()
 import os
 import sys
 
+from hermes_cli.brand import CLI_NAME, PRODUCT_NAME
+
 # Early venv self-heal — MUST run before any third-party import below.  When
 # a prior ``vedant update`` left a recovery marker and a core package's import
 # files were wiped (#57828 — failed lazy backend refresh), the module-level
@@ -2594,10 +2596,11 @@ def cmd_chat(args):
     if not _has_any_provider_configured():
         print()
         print(
-            "It looks like Hermes isn't configured yet -- no API keys or providers found."
+            f"It looks like {PRODUCT_NAME} isn't configured yet -- "
+            "no API keys or providers found."
         )
         print()
-        print("  Run:  vedant setup")
+        print(f"  Run:  {CLI_NAME} setup")
         print()
 
         from hermes_cli.setup import (
@@ -2619,7 +2622,7 @@ def cmd_chat(args):
             cmd_setup(args)
             return
         print()
-        print("You can run 'vedant setup' at any time to configure.")
+        print(f"You can run '{CLI_NAME} setup' at any time to configure.")
         sys.exit(1)
 
     # Start update check in background (runs while other init happens).
