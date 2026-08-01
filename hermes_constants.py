@@ -51,25 +51,25 @@ def get_hermes_home_override() -> str | None:
 
 
 def _get_platform_default_hermes_home() -> Path:
-    """Return the platform-native default data home path (``~/.localstreet``)."""
+    """Return the platform-native default data home path (``~/.keshav``)."""
     if sys.platform == "win32":
         local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
-        return base / "localstreet"
-    return Path.home() / ".localstreet"
+        return base / "keshav"
+    return Path.home() / ".keshav"
 
 
 def _hermes_home_from_env() -> Path:
     """Resolve data home from the process environment only.
 
-    Checks ``LOCALSTREET_HOME``, then ``VEDANT_HOME``, then ``HERMES_HOME``
+    Checks ``KESHAV_HOME``, then ``TOMORROW_HOME``, then ``HERMES_HOME``
     (silent back-compat), falling back to the platform-native default.
     Deliberately ignores the context-local override installed by
     :func:`set_hermes_home_override`, so this reflects the process/launch
     scope rather than a per-task profile.  Shared by :func:`get_hermes_home`
     and :func:`get_process_hermes_home` so the two never drift.
     """
-    for key in ("LOCALSTREET_HOME", "VEDANT_HOME", "HERMES_HOME"):
+    for key in ("KESHAV_HOME", "TOMORROW_HOME", "HERMES_HOME"):
         val = os.environ.get(key, "").strip()
         if val:
             return Path(val)
@@ -98,7 +98,7 @@ def _warn_profile_fallback_once() -> None:
             f"profile is {active!r}. Falling back to {fallback_home}, which "
             f"is the DEFAULT profile — not {active!r}. Any data this "
             f"process writes will land in the wrong profile. The "
-            f"subprocess spawner should pass LOCALSTREET_HOME explicitly."
+            f"subprocess spawner should pass KESHAV_HOME explicitly."
         )
         try:
             sys.stderr.write(msg + "\n")
@@ -108,10 +108,10 @@ def _warn_profile_fallback_once() -> None:
 
 
 def get_hermes_home() -> Path:
-    """Return the data home directory (default: ``~/.localstreet``).
+    """Return the data home directory (default: ``~/.keshav``).
 
     Resolution order: context-local override (see
-    :func:`set_hermes_home_override`) → ``LOCALSTREET_HOME`` / ``VEDANT_HOME``
+    :func:`set_hermes_home_override`) → ``KESHAV_HOME`` / ``TOMORROW_HOME``
     / ``HERMES_HOME`` env vars → the platform-native default.  This is the
     single source of truth — all other copies should import this.
 
@@ -128,7 +128,7 @@ def get_hermes_home() -> Path:
 
     if not any(
         os.environ.get(k, "").strip()
-        for k in ("LOCALSTREET_HOME", "VEDANT_HOME", "HERMES_HOME")
+        for k in ("KESHAV_HOME", "TOMORROW_HOME", "HERMES_HOME")
     ):
         _warn_profile_fallback_once()
 
@@ -464,7 +464,7 @@ def heal_hermes_managed_node() -> bool:
             ],
             env={
                 **os.environ,
-                "LOCALSTREET_HOME": str(get_hermes_home()),
+                "KESHAV_HOME": str(get_hermes_home()),
                 "HERMES_HOME": str(get_hermes_home()),
             },
             capture_output=True,
@@ -662,12 +662,12 @@ def display_hermes_home() -> str:
 
     Uses ``~/`` shorthand for readability::
 
-        default:  ``~/.localstreet``
-        profile:  ``~/.localstreet/profiles/coder``
+        default:  ``~/.keshav``
+        profile:  ``~/.keshav/profiles/coder``
         custom:   ``/opt/data``
 
     Use this in **user-facing** print/log messages instead of hardcoding
-    ``~/.localstreet``.  For code that needs a real ``Path``, use
+    ``~/.keshav``.  For code that needs a real ``Path``, use
     :func:`get_hermes_home` instead.
     """
     home = get_hermes_home()

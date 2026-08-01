@@ -1,0 +1,109 @@
+# =============================================================================
+# Tomorrow / Keshav — White-label control file
+# =============================================================================
+# Edit this file (or a copy at ~/.keshav/white_label.yaml), then run:
+#
+#   tomorrow customize apply
+#
+# Precedence: ~/.keshav/white_label.yaml  overrides  repo white_label.yaml
+#
+# Quick map:
+#   brand          → CLI name, product name, skin, data-home label
+#   tone           → SOUL.md + default system identity (personality)
+#   capabilities   → deep-merged into config.yaml (memory, display, etc.)
+#   tools          → optional default platform toolsets (or use `tomorrow tools`)
+#
+# Changing brand.home_dirname does NOT move an existing data directory —
+# set KESHAV_HOME / TOMORROW_HOME if you need a custom path.
+# =============================================================================
+
+brand:
+  product_name: Tomorrow
+  product_name_full: Tomorrow
+  product_tagline: "Virtual Executive for Decision-making, Automation, Navigation, and Tasks"
+  org_name: Keshav
+  cli_name: tomorrow
+  default_skin: keshav
+  home_dirname: .keshav
+  home_dirname_win: keshav
+  # Env vars checked (in order) for the data home. Usually leave as-is.
+  home_env_vars:
+    - KESHAV_HOME
+    - TOMORROW_HOME
+    - HERMES_HOME
+
+tone:
+  # Seeded into ~/.keshav/SOUL.md on `tomorrow customize apply`
+  # (and on first install). Edit SOUL.md anytime for live tone changes —
+  # it is re-read each turn.
+  soul: |
+    You are Tomorrow, an intelligent AI assistant — Virtual Executive for
+    Decision-making, Automation, Navigation, and Tasks — by Keshav.
+    You are helpful, knowledgeable, and direct. You assist users with a wide
+    range of tasks including answering questions, writing and editing code,
+    analyzing information, creative work, and executing actions via your tools.
+    You communicate clearly, admit uncertainty when appropriate, and prioritize
+    being genuinely useful over being verbose unless otherwise directed below.
+    Be targeted and efficient in your exploration and investigations.
+
+  # Used when SOUL.md is missing (system-prompt identity fallback).
+  identity: |
+    You are Tomorrow, an intelligent AI assistant — Virtual Executive for
+    Decision-making, Automation, Navigation, and Tasks — by Keshav.
+    You are helpful, knowledgeable, and direct. You assist users with a wide
+    range of tasks including answering questions, writing and editing code,
+    analyzing information, creative work, and executing actions via your tools.
+    You communicate clearly, admit uncertainty when appropriate, and prioritize
+    being genuinely useful over being verbose unless otherwise directed below.
+    Be targeted and efficient in your exploration and investigations.
+
+  # Injected into the stable system prompt (help / self-identification).
+  help_guidance: |
+    You run on Tomorrow by Keshav. When the user needs help with
+    Tomorrow itself — configuring, setting up, using, extending, or troubleshooting
+    it — or when you need to understand your own features, tools, or capabilities,
+    use your available tools and skills to investigate. Always identify yourself
+    as Tomorrow by Keshav.
+
+capabilities:
+  # Deep-merged into ~/.keshav/config.yaml by `tomorrow customize apply`.
+  # Only keys listed here are written; everything else in config.yaml is kept.
+  config:
+    display:
+      skin: keshav
+    memory:
+      memory_enabled: true
+      # External provider: openviking | mem0 | hindsight | holographic |
+      # retaindb | byterover | honcho | supermemory — empty = built-in only.
+      provider: ""
+      user_profile_enabled: true
+
+# Optional: default toolsets per platform. Uncomment and list toolset keys
+# (same names as in `tomorrow tools`). Prefer the interactive UI for day-to-day
+# changes — this block is only applied on `tomorrow customize apply`.
+#
+# tools:
+#   platform_toolsets:
+#     cli:
+#       - terminal
+#       - file
+#       - web
+#       - browser
+#       - vision
+#       - moa
+#       - image_gen
+#       - tts
+#       - todo
+#       - memory
+#       - session_search
+#       - skills
+#       - cronjob
+#       - code_execution
+#       - delegation
+#     telegram:
+#       - messaging
+#       - terminal
+#       - file
+#       - web
+#       - memory
+#       - skills

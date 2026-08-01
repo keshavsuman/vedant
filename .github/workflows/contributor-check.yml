@@ -1,6 +1,6 @@
 name: Contributor Attribution Check
 
-# Disabled for the Vedant / Localstreet white-label deploy — the contributors/
+# Disabled for the Tomorrow / Keshav white-label deploy — the contributors/
 # directory has been removed. This workflow always succeeds so CI callers
 # that still `needs: contributor-check` keep working.
 

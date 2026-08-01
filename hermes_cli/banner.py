@@ -67,12 +67,12 @@ def _skin_color(key: str, fallback: str) -> str:
 
 from hermes_cli import __version__ as VERSION, __release_date__ as RELEASE_DATE
 
-HERMES_AGENT_LOGO = """[bold #2DD4BF]██╗   ██╗███████╗██████╗  █████╗ ███╗   ██╗████████╗[/]
-[bold #14B8A6]██║   ██║██╔════╝██╔══██╗██╔══██╗████╗  ██║╚══██╔══╝[/]
-[#0D9488]██║   ██║█████╗  ██║  ██║███████║██╔██╗ ██║   ██║[/]
-[#0F766E]╚██╗ ██╔╝██╔══╝  ██║  ██║██╔══██║██║╚██╗██║   ██║[/]
-[#115E59] ╚████╔╝ ███████╗██████╔╝██║  ██║██║ ╚████║   ██║[/]
-[#134E4A]  ╚═══╝  ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝[/]"""
+HERMES_AGENT_LOGO = """[bold #2DD4BF]████████╗ ██████╗ ███╗   ███╗ ██████╗ ██████╗ ██████╗  ██████╗ ██╗    ██╗[/]
+[bold #14B8A6]╚══██╔══╝██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔══██╗██╔═══██╗██║    ██║[/]
+[#0D9488]   ██║   ██║   ██║██╔████╔██║██║   ██║██████╔╝██████╔╝██║   ██║██║ █╗ ██║[/]
+[#0F766E]   ██║   ██║   ██║██║╚██╔╝██║██║   ██║██╔══██╗██╔══██╗██║   ██║██║███╗██║[/]
+[#115E59]   ██║   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██║  ██║██║  ██║╚██████╔╝╚███╔███╔╝[/]
+[#134E4A]   ╚═╝    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ [/]"""
 
 HERMES_CADUCEUS = """[#0D9488]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
 [#0D9488]⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀[/]
@@ -487,7 +487,7 @@ def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
 
 def format_banner_version_label() -> str:
     """Return the version label shown in the startup banner title."""
-    base = f"Vedant v{VERSION} ({RELEASE_DATE})"
+    base = f"Tomorrow v{VERSION} ({RELEASE_DATE})"
     state = get_git_banner_state()
     if not state:
         return base
@@ -657,7 +657,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
             preset_name = preset_name[:25] + "..."
         agg_str = f" [dim {dim}]·[/] [dim {dim}]agg {agg_label}[/]" if agg_label else ""
         ctx_str = f" [dim {dim}]·[/] [dim {dim}]{_format_context_length(context_length)} context[/]" if context_length else ""
-        left_lines.append(f"[{accent}]MoA: {preset_name}[/]{agg_str}{ctx_str} [dim {dim}]·[/] [dim {dim}]Localstreet[/]")
+        left_lines.append(f"[{accent}]MoA: {preset_name}[/]{agg_str}{ctx_str} [dim {dim}]·[/] [dim {dim}]Keshav[/]")
     else:
         model_short = model.split("/")[-1] if "/" in model else model
         if model_short.endswith(".gguf"):
@@ -665,7 +665,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
         if len(model_short) > 28:
             model_short = model_short[:25] + "..."
         ctx_str = f" [dim {dim}]·[/] [dim {dim}]{_format_context_length(context_length)} context[/]" if context_length else ""
-        left_lines.append(f"[{accent}]{model_short}[/]{ctx_str} [dim {dim}]·[/] [dim {dim}]Localstreet[/]")
+        left_lines.append(f"[{accent}]{model_short}[/]{ctx_str} [dim {dim}]·[/] [dim {dim}]Keshav[/]")
 
     if os.getenv("HERMES_YOLO_MODE"):
         left_lines.append(f"[bold red]⚠ YOLO mode[/] [dim {dim}]— all approval prompts bypassed[/]")

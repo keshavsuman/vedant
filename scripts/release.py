@@ -2061,7 +2061,7 @@ LEGACY_AUTHOR_MAP = {
 
 
 # Directory-based mappings were under contributors/emails/ (removed in the
-# Vedant white-label). _load_contributor_dir() is a no-op when the directory
+# Tomorrow white-label). _load_contributor_dir() is a no-op when the directory
 # is absent; AUTHOR_MAP falls back to LEGACY_AUTHOR_MAP only.
 CONTRIBUTORS_EMAILS_DIR = REPO_ROOT / "contributors" / "emails"
 

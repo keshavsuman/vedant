@@ -969,7 +969,7 @@ export function createGatewayEventHandler(ctx: GatewayEventHandlerContext): (ev:
           const ownProfile = getUiState().info?.profile_name || 'default'
 
           if (wakeProfile && wakeProfile !== ownProfile) {
-            sys(`wake phrase for profile '${wakeProfile}' — run: vedant -p ${wakeProfile} --tui`)
+            sys(`wake phrase for profile '${wakeProfile}' — run: tomorrow -p ${wakeProfile} --tui`)
             await rpc('wake.resume', {}).catch(() => undefined)
 
             return

@@ -89,11 +89,11 @@ class TestGatewayPersonalityNone:
         (tmp_path / "config.yaml").write_text(yaml.dump({"agent": {"personalities": {}}}))
 
         with patch("gateway.run._hermes_home", tmp_path), \
-             patch("hermes_constants.display_hermes_home", return_value="~/.localstreet/profiles/coder"):
+             patch("hermes_constants.display_hermes_home", return_value="~/.keshav/profiles/coder"):
             event = self._make_event("")
             result = await runner._handle_personality_command(event)
 
-        assert result == "No personalities configured in `~/.localstreet/profiles/coder/config.yaml`"
+        assert result == "No personalities configured in `~/.keshav/profiles/coder/config.yaml`"
 
 
 class TestPersonalityDictFormat:

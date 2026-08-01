@@ -131,7 +131,7 @@ function normalizeWhatsAppMode(mode: unknown): "bot" | "self-chat" | null {
 
 export default function ChannelsPage() {
   const [platforms, setPlatforms] = useState<MessagingPlatform[]>([]);
-  const [envPath, setEnvPath] = useState("~/.localstreet/.env");
+  const [envPath, setEnvPath] = useState("~/.keshav/.env");
   const [gatewayStartCommand, setGatewayStartCommand] = useState(
     "hermes gateway start",
   );
@@ -163,7 +163,7 @@ export default function ChannelsPage() {
       .getMessagingPlatforms()
       .then((res) => {
         setPlatforms(res.platforms);
-        setEnvPath(res.env_path || "~/.localstreet/.env");
+        setEnvPath(res.env_path || "~/.keshav/.env");
         setGatewayStartCommand(res.gateway_start_command || "hermes gateway start");
       })
       .catch((e) => showToast(`Error: ${e}`, "error"));
@@ -1148,7 +1148,7 @@ function TelegramOnboardingPanel({
     setDetectedOwnerId(null);
     setNewAllowedId("");
     try {
-      const res = await api.startTelegramOnboarding({ bot_name: "Vedant" });
+      const res = await api.startTelegramOnboarding({ bot_name: "Tomorrow" });
       const dataUrl = await QRCode.toDataURL(res.qr_payload, {
         errorCorrectionLevel: "M",
         margin: 1,

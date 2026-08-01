@@ -62,14 +62,14 @@ export const en: Translations = {
   },
 
   boot: {
-    ready: 'Vedant Desktop is ready',
+    ready: 'Tomorrow Desktop is ready',
     desktopBootFailedWithMessage: message => `Desktop boot failed: ${message}`,
     steps: {
       connectingGateway: 'Connecting live desktop gateway',
       loadingSettings: 'Loading Hermes settings',
       loadingSessions: 'Loading recent sessions',
       startingDesktopConnection: 'Starting desktop connection',
-      startingHermesDesktop: 'Starting Vedant Desktop…'
+      startingHermesDesktop: 'Starting Tomorrow Desktop…'
     },
     errors: {
       backgroundExited: 'Hermes background process exited.',
@@ -135,7 +135,7 @@ export const en: Translations = {
       diskFull: 'Disk full — free some space, then try again.',
       gatewayAuthFailed: 'Gateway authentication failed — check your API_SERVER_KEY.',
       methodNotAllowed:
-        'The desktop backend rejected that request (405 Method Not Allowed). Try restarting Vedant Desktop.',
+        'The desktop backend rejected that request (405 Method Not Allowed). Try restarting Tomorrow Desktop.',
       microphonePermission: 'Microphone permission was denied.',
       openaiRejectedApiKey: 'OpenAI rejected the API key.',
       openaiRejectedApiKeyWithStatus: status => `OpenAI rejected the API key (${status} invalid_api_key).`,
@@ -417,7 +417,7 @@ export const en: Translations = {
       advanced: 'Advanced'
     },
     searchPlaceholder: {
-      about: 'About Vedant Desktop',
+      about: 'About Tomorrow Desktop',
       config: 'Search settings...',
       gateway: 'Gateway connection...',
       keys: 'Search API keys...',
@@ -512,7 +512,7 @@ export const en: Translations = {
     fieldLabels: FIELD_LABELS,
     fieldDescriptions: FIELD_DESCRIPTIONS,
     about: {
-      heading: 'Vedant Desktop',
+      heading: 'Tomorrow Desktop',
       version: value => `Version ${value}`,
       versionUnavailable: 'Version unavailable',
       updates: 'Updates',
@@ -681,7 +681,7 @@ export const en: Translations = {
       enterUrlFirst: 'Enter a remote URL first.',
       restartingTitle: 'Gateway connection restarting',
       savedTitle: 'Gateway settings saved',
-      restartingMessage: 'Vedant Desktop will reconnect using the saved settings — the shell stays open.',
+      restartingMessage: 'Tomorrow Desktop will reconnect using the saved settings — the shell stays open.',
       savedMessage: 'Saved for the next restart.',
       connectedTo: (baseUrl, version) => `Connected to ${baseUrl}${version ? ` · Hermes ${version}` : ''}`,
       reachableTitle: 'Remote gateway reachable',
@@ -726,7 +726,7 @@ export const en: Translations = {
       sshErrNotInstalled:
         'Hermes is not installed on the remote host. Install it there (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) or set the Hermes path.',
       sshErrPlatform:
-        'Unsupported remote platform. Vedant Desktop SSH mode supports Linux, macOS, and Windows remote hosts.',
+        'Unsupported remote platform. Tomorrow Desktop SSH mode supports Linux, macOS, and Windows remote hosts.',
       sshErrTimeout: 'SSH connection timed out. The host may be unreachable or asleep.',
       sshErrUpdateRequired: 'Update Hermes on the remote host before connecting with Desktop SSH.',
       sshErrUnknown: 'SSH connection failed.'
@@ -2219,7 +2219,7 @@ export const en: Translations = {
     viewDocs: 'View install docs',
     installTo: 'Will install to',
     retryAfterRun: 'I’ve run it -- retry',
-    setupChoiceTitle: 'Set up Vedant Desktop',
+    setupChoiceTitle: 'Set up Tomorrow Desktop',
     setupChoiceDesc:
       'Connect this app to a Hermes gateway you already run, or install Hermes locally on this computer.',
     connectExistingTitle: 'Connect to existing Hermes',
@@ -2227,9 +2227,9 @@ export const en: Translations = {
     connectExistingDesc: 'Use a remote backend with a session token or browser sign-in. No local install will start.',
     installLocalTitle: 'Install Hermes locally',
     installLocalDesc: 'Download Hermes, create its Python environment, and run the backend on this computer.',
-    localStartUnavailable: 'Local installation could not start. Restart Vedant Desktop and try again.',
+    localStartUnavailable: 'Local installation could not start. Restart Tomorrow Desktop and try again.',
     remoteSetupTitle: 'Connect to existing Hermes',
-    remoteSetupDesc: 'Enter your gateway URL. Vedant Desktop will detect whether it needs a token or browser sign-in.',
+    remoteSetupDesc: 'Enter your gateway URL. Tomorrow Desktop will detect whether it needs a token or browser sign-in.',
     remoteUrlTitle: 'Gateway URL',
     remoteUrlDesc: 'Use the base URL of the Hermes gateway, including https:// when remote.',
     remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
@@ -2254,7 +2254,7 @@ export const en: Translations = {
     applyRemote: 'Apply and reconnect',
     backToSetup: 'Back',
     failedTitle: 'Installation failed',
-    settingUpTitle: 'Setting up Vedant',
+    settingUpTitle: 'Setting up Tomorrow',
     finishingTitle: 'Finishing up',
     failedDesc:
       'One of the install steps failed. On Windows, this can happen if another Hermes CLI or desktop instance is running. Stop any running Hermes instances, then retry. Check the details below or the desktop log for the full transcript.',
@@ -2277,7 +2277,7 @@ export const en: Translations = {
   },
 
   onboarding: {
-    headerTitle: "Let's get you setup with Vedant",
+    headerTitle: "Let's get you setup with Tomorrow",
     headerDesc: 'Connect a model provider to start chatting. Most options take one click.',
     preparingInstall: 'Hermes is finishing install. This usually takes under a minute on first run.',
     starting: 'Starting Hermes…',
@@ -2435,7 +2435,7 @@ export const en: Translations = {
       update: 'update',
       updateInProgress: 'Update in progress',
       commitsBehind: (count, branch) => `${count} commit${count === 1 ? '' : 's'} behind ${branch}`,
-      desktopVersion: version => `Vedant Desktop v${version}`,
+      desktopVersion: version => `Tomorrow Desktop v${version}`,
       backendVersion: version => `Backend v${version}`,
       clientLabel: version => `client v${version}`,
       connectionSsh: host => `SSH: ${host}`,
@@ -2906,8 +2906,8 @@ export const en: Translations = {
     sessionExportFailed: 'Could not export session',
     imageSaved: 'Image saved',
     downloadStarted: 'Download started',
-    restartToUseSaveImage: 'Restart Vedant Desktop to use Save Image.',
-    restartToSaveImages: 'Restart Vedant Desktop to save images',
+    restartToUseSaveImage: 'Restart Tomorrow Desktop to use Save Image.',
+    restartToSaveImages: 'Restart Tomorrow Desktop to save images',
     imageDownloadFailed: 'Image download failed',
     openImage: 'Open image',
     downloadImage: 'Download image',

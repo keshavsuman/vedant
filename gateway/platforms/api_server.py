@@ -96,7 +96,7 @@ logger = logging.getLogger(__name__)
 
 
 def _hermes_version() -> str:
-    """Return the canonical Vedant version string.
+    """Return the canonical Tomorrow version string.
 
     ``hermes_cli.__version__`` is the runtime source of truth used by the CLI,
     dashboard, portal tags, and release script. Prefer it over installed
@@ -1947,7 +1947,7 @@ class APIServerAdapter(BasePlatformAdapter):
     def _ensure_session_db(self):
         """Lazily initialise and return the SessionDB for the active profile home.
 
-        Sessions are persisted to ``state.db`` so that ``vedant sessions list``
+        Sessions are persisted to ``state.db`` so that ``tomorrow sessions list``
         shows API-server conversations alongside CLI and gateway ones.
 
         Under multiplex ``/p/<profile>/`` requests the profile runtime scope
@@ -2578,7 +2578,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 )
 
         # When the config has no model.default but a provider was resolved
-        # (e.g. user ran `vedant auth add openai-codex` without `vedant model`),
+        # (e.g. user ran `tomorrow auth add openai-codex` without `tomorrow model`),
         # fall back to the provider's first catalog model so the API call
         # doesn't fail with "model must be a non-empty string". Mirrors
         # run.py::_resolve_session_agent_runtime. Runs after the selection
@@ -6817,7 +6817,7 @@ class APIServerAdapter(BasePlatformAdapter):
             # unsandboxed local terminal backend. The API server can drive the
             # agent's terminal/file tools as the host user; on a public bind
             # that is the exact surface the hermes-0day campaign abused to write
-            # ~/.localstreet/config.yaml and plant persistence. Sandboxing (Docker /
+            # ~/.keshav/config.yaml and plant persistence. Sandboxing (Docker /
             # remote backend) contains the blast radius. Warn, don't refuse —
             # the operator may have an external firewall / strong key.
             if is_network_accessible(self._host):

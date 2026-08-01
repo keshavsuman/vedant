@@ -398,7 +398,7 @@ export function Journey({ gw, onClose, t }: JourneyProps) {
     return (
       <Shell t={t}>
         <Text color={t.color.muted}>
-          No learning yet — your learned skills and memories will start mapping out here as you use Vedant.
+          No learning yet — your learned skills and memories will start mapping out here as you use Tomorrow.
         </Text>
       </Shell>
     )

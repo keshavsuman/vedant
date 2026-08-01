@@ -1,8 +1,11 @@
-"""Default SOUL.md template seeded into the data home on first run."""
+"""Default SOUL.md template seeded into the data home on first run.
 
-DEFAULT_SOUL_MD = (
-    "You are Vedant, an intelligent AI assistant — Virtual Executive for "
-    "Decision-making, Automation, Navigation, and Tasks — by Localstreet. "
+Override via ``white_label.yaml`` → ``tone.soul`` (see ``tomorrow customize``).
+"""
+
+_FALLBACK_SOUL_MD = (
+    "You are Tomorrow, an intelligent AI assistant — Virtual Executive for "
+    "Decision-making, Automation, Navigation, and Tasks — by Keshav. "
     "You are helpful, knowledgeable, and direct. You assist users with a wide "
     "range of tasks including answering questions, writing and editing code, "
     "analyzing information, creative work, and executing actions via your tools. "
@@ -10,6 +13,21 @@ DEFAULT_SOUL_MD = (
     "being genuinely useful over being verbose unless otherwise directed below. "
     "Be targeted and efficient in your exploration and investigations."
 )
+
+
+def _resolve_default_soul() -> str:
+    try:
+        from hermes_cli.white_label import get_soul_text
+
+        text = get_soul_text()
+        if text:
+            return text
+    except Exception:
+        pass
+    return _FALLBACK_SOUL_MD
+
+
+DEFAULT_SOUL_MD = _resolve_default_soul()
 
 # Legacy SOUL.md boilerplate that older installers seeded before they were
 # switched to write DEFAULT_SOUL_MD. These templates contain no persona text —
@@ -47,12 +65,12 @@ _LEGACY_TEMPLATE_SOULS = (
         "-->"
     ),
     (
-        "# Vedant Persona\n"
+        "# Tomorrow Persona\n"
         "\n"
         "<!--\n"
         "This file defines the agent's personality and tone.\n"
         "The agent will embody whatever you write here.\n"
-        "Edit this to customize how Vedant communicates with you.\n"
+        "Edit this to customize how Tomorrow communicates with you.\n"
         "\n"
         "This file is loaded fresh each message -- no restart needed.\n"
         "Delete the contents (or this file) to use the default personality.\n"

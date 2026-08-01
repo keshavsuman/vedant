@@ -1,9 +1,9 @@
 """
-Vedant Uninstaller.
+Tomorrow Uninstaller.
 
 Provides options for:
 - Full uninstall: Remove everything including configs and data
-- Keep data: Remove code but keep ~/.localstreet/ (configs, sessions, logs)
+- Keep data: Remove code but keep ~/.keshav/ (configs, sessions, logs)
 """
 
 import os
@@ -65,8 +65,8 @@ def remove_path_from_shell_configs():
             skip_next = False
             
             for line in content.split('\n'):
-                # Skip the "# Vedant" comment and following line
-                if '# Vedant' in line or '# hermes-agent' in line:
+                # Skip the "# Tomorrow" comment and following line
+                if '# Tomorrow' in line or '# hermes-agent' in line:
                     skip_next = True
                     continue
                 if skip_next and ('hermes' in line.lower() and 'PATH' in line):
@@ -139,7 +139,7 @@ def remove_node_symlinks(hermes_home: Path) -> list:
     """Remove the node/npm/npx symlinks the installer placed on PATH.
 
     The POSIX installer (``scripts/install.sh`` / ``scripts/lib/node-bootstrap.sh``)
-    symlinks node/npm/npx into the same directory as the ``vedant`` command:
+    symlinks node/npm/npx into the same directory as the ``tomorrow`` command:
 
     - ``/usr/local/bin/`` on root FHS installs (Linux, uid 0)
     - ``$PREFIX/bin/`` on Termux
@@ -188,7 +188,7 @@ def uninstall_gateway_service():
     - Linux: user + system systemd services (with proper DBUS env setup)
     - macOS: launchd plists
     - Windows: Scheduled Task + Startup-folder fallback, via ``gateway_windows``
-    - All platforms: standalone ``vedant gateway run`` processes
+    - All platforms: standalone ``tomorrow gateway run`` processes
     - Termux/Android: skips systemd (no systemd on Android), still kills standalone processes
     """
     import platform
@@ -310,7 +310,7 @@ def uninstall_gateway_service():
 #   3. Downloads PortableGit to ``%LOCALAPPDATA%\hermes\git\`` and Node to
 #      ``%LOCALAPPDATA%\hermes\node\`` as user-scoped, isolated copies.
 #      These are ~200MB combined and serve no purpose after uninstall.
-#   4. On the ``vedant dashboard`` + gateway paths, drops files into
+#   4. On the ``tomorrow dashboard`` + gateway paths, drops files into
 #      ``%LOCALAPPDATA%\hermes\gateway-service\`` and sometimes
 #      ``%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\`` — the
 #      latter is handled by ``gateway_windows.uninstall()`` already.
@@ -450,7 +450,7 @@ def _uninstall_profile(profile) -> None:
     """Fully uninstall a single named profile: stop its gateway service,
     remove its alias wrapper, and wipe its HERMES_HOME directory.
 
-    We shell out to ``vedant -p <name> gateway stop|uninstall`` because
+    We shell out to ``tomorrow -p <name> gateway stop|uninstall`` because
     service names, unit paths, and plist paths are all derived from the
     current HERMES_HOME and can't be easily switched in-process.
     """
@@ -461,7 +461,7 @@ def _uninstall_profile(profile) -> None:
     log_info(f"Uninstalling profile '{name}'...")
 
     # 1. Stop and remove this profile's gateway service.
-    #    Use `python -m hermes_cli.main` so we don't depend on a `vedant`
+    #    Use `python -m hermes_cli.main` so we don't depend on a `tomorrow`
     #    wrapper that may be half-removed mid-uninstall.
     hermes_invocation = [_sys.executable, "-m", "hermes_cli.main", "--profile", name]
     for subcmd in ("stop", "uninstall"):
@@ -499,7 +499,7 @@ def _uninstall_profile(profile) -> None:
 def run_gui_uninstall(args):
     """GUI-only uninstall: remove the Chat GUI, leave the agent + data intact.
 
-    Mirrors ``vedant uninstall --gui``. Removes the desktop app's built
+    Mirrors ``tomorrow uninstall --gui``. Removes the desktop app's built
     artifacts, the packaged app bundle (best-effort), and the Electron
     userData dir — nothing under ``$HERMES_HOME`` config/sessions/.env, and
     never the Python agent or its venv.
@@ -564,7 +564,7 @@ def run_gui_uninstall(args):
     print(color("└─────────────────────────────────────────────────────────┘", Colors.GREEN, Colors.BOLD))
     print()
     print("The Hermes agent is still installed. Run 'hermes' to use the CLI,")
-    print("or 'vedant uninstall' to remove the agent too.")
+    print("or 'tomorrow uninstall' to remove the agent too.")
     print()
 
 
@@ -573,8 +573,8 @@ def run_uninstall(args):
     Run the uninstall process.
     
     Options:
-    - Full uninstall: removes code + ~/.localstreet/ (configs, data, logs)
-    - Keep data: removes code but keeps ~/.localstreet/ for future reinstall
+    - Full uninstall: removes code + ~/.keshav/ (configs, data, logs)
+    - Keep data: removes code but keeps ~/.keshav/ for future reinstall
     """
     project_root = get_project_root()
     hermes_home = get_hermes_home()
@@ -594,7 +594,7 @@ def run_uninstall(args):
     named_profiles = _discover_named_profiles() if is_default_profile else []
 
     # Non-interactive fast path (``--yes``): no prompts. ``--full`` selects a
-    # full wipe (code + ~/.localstreet data); otherwise keep-data. Named profiles
+    # full wipe (code + ~/.keshav data); otherwise keep-data. Named profiles
     # are NOT auto-removed here — that's a destructive, surprising default for
     # an unattended run, so it stays opt-in to the interactive flow. This is
     # the path the desktop app's detached cleanup script uses for its
@@ -613,7 +613,7 @@ def run_uninstall(args):
 
     print()
     print(color("┌─────────────────────────────────────────────────────────┐", Colors.MAGENTA, Colors.BOLD))
-    print(color("│            ⚕ Vedant Uninstaller                  │", Colors.MAGENTA, Colors.BOLD))
+    print(color("│            ⚕ Tomorrow Uninstaller                  │", Colors.MAGENTA, Colors.BOLD))
     print(color("└─────────────────────────────────────────────────────────┘", Colors.MAGENTA, Colors.BOLD))
     print()
     
@@ -752,7 +752,7 @@ def _perform_uninstall(
     paths so the destructive sequence lives in exactly one place.
 
     Steps: stop gateway → strip PATH (rc files + Windows registry) → remove the
-    ``vedant`` wrapper + node symlinks → remove the desktop Chat GUI artifacts →
+    ``tomorrow`` wrapper + node symlinks → remove the desktop Chat GUI artifacts →
     delete the code checkout → (Windows) remove PortableGit/Node → optionally
     wipe ``$HERMES_HOME`` data and named profiles on full uninstall.
     """
@@ -841,7 +841,7 @@ def _perform_uninstall(
     # We need to be careful here
     try:
         if project_root.exists():
-            # If the install is inside ~/.localstreet/, just remove the hermes-agent subdir
+            # If the install is inside ~/.keshav/, just remove the hermes-agent subdir
             if hermes_home in project_root.parents or project_root.parent == hermes_home:
                 shutil.rmtree(project_root)
                 log_success(f"Removed {project_root}")
@@ -868,7 +868,7 @@ def _perform_uninstall(
         else:
             log_info("No Windows installer artifacts to remove")
     
-    # 5. Optionally remove ~/.localstreet/ data directory (and named profiles)
+    # 5. Optionally remove ~/.keshav/ data directory (and named profiles)
     if full_uninstall:
         # 5a. Stop and remove each named profile's gateway service and
         #     alias wrapper. The profile HERMES_HOME dirs live under
@@ -915,7 +915,7 @@ def _perform_uninstall(
         print(color("Reload your shell to complete the process:", Colors.YELLOW))
         print("  source ~/.bashrc  # or ~/.zshrc")
     print()
-    print("Thank you for using Vedant! ⚕")
+    print("Thank you for using Tomorrow! ⚕")
     print()
 
 

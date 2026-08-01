@@ -1,10 +1,10 @@
-"""``vedant portal`` — the human-readable entry point for Nous Portal.
+"""``tomorrow portal`` — the human-readable entry point for Nous Portal.
 
-Running ``vedant portal`` with no subcommand performs the one-shot Portal
+Running ``tomorrow portal`` with no subcommand performs the one-shot Portal
 onboarding: OAuth login, pick a Nous model, switch the inference provider to
 Nous, and offer to enable the Tool Gateway. It is the friendly alias for
-``vedant auth add nous --type oauth`` (which still works), is identical to
-``vedant setup --portal``, and runs the same Nous flow as the first-time quick
+``tomorrow auth add nous --type oauth`` (which still works), is identical to
+``tomorrow setup --portal``, and runs the same Nous flow as the first-time quick
 setup.
 
 Subcommands:
@@ -15,7 +15,7 @@ Subcommands:
   tools    List Tool Gateway tools and which are active in the current config.
 
 This command is intentionally minimal — it does not duplicate functionality
-already in ``vedant auth`` or ``vedant tools``. It's the onboarding + discovery
+already in ``tomorrow auth`` or ``tomorrow tools``. It's the onboarding + discovery
 surface for the Portal subscription itself.
 """
 from __future__ import annotations
@@ -67,7 +67,7 @@ def _cmd_status(args) -> int:
     if provider == "nous":
         print(f"  Model:   {color('✓ using Nous as inference provider', Colors.GREEN)}")
     elif provider:
-        print(f"  Model:   currently {provider} (switch with `vedant model`)")
+        print(f"  Model:   currently {provider} (switch with `tomorrow model`)")
 
     # Tool Gateway routing
     print()
@@ -144,7 +144,7 @@ def _cmd_tools(args) -> int:
     print(color("  ────────────────────", Colors.MAGENTA))
 
     if not features.nous_auth_present:
-        print(color("  Not logged into Nous Portal — sign in with `vedant portal`.", Colors.YELLOW))
+        print(color("  Not logged into Nous Portal — sign in with `tomorrow portal`.", Colors.YELLOW))
         print()
 
     label_width = max(len(label) for _, label, _ in catalog)
@@ -171,8 +171,8 @@ def _cmd_tools(args) -> int:
 def _cmd_login(args) -> int:
     """Run the one-shot Nous Portal onboarding (login + model + provider + tools).
 
-    This is the human-readable front door for `vedant auth add nous --type
-    oauth`. It reuses the exact wiring behind `vedant setup --portal` (which in
+    This is the human-readable front door for `tomorrow auth add nous --type
+    oauth`. It reuses the exact wiring behind `tomorrow setup --portal` (which in
     turn runs the same Nous flow as the first-time quick setup), so the
     commands stay in lockstep: device-code login, pick a Nous model, switch the
     inference provider to Nous, then offer the Tool Gateway opt-in.
@@ -190,12 +190,12 @@ def _cmd_login(args) -> int:
 
 
 def portal_command(args) -> int:
-    """Top-level dispatch for `vedant portal <subcommand>`."""
+    """Top-level dispatch for `tomorrow portal <subcommand>`."""
     sub = getattr(args, "portal_command", None)
     if sub in {None, "", "login"}:
-        # Default to the one-shot onboarding — `vedant portal` is the
-        # human-readable alias for `vedant auth add nous --type oauth` /
-        # `vedant setup --portal`.
+        # Default to the one-shot onboarding — `tomorrow portal` is the
+        # human-readable alias for `tomorrow auth add nous --type oauth` /
+        # `tomorrow setup --portal`.
         return _cmd_login(args)
     if sub in {"info", "status"}:
         # `status` kept as a back-compat alias for the prior default.
@@ -205,20 +205,20 @@ def portal_command(args) -> int:
     if sub == "tools":
         return _cmd_tools(args)
     print(f"Unknown portal subcommand: {sub}", file=sys.stderr)
-    print("Run `vedant portal -h` for usage.", file=sys.stderr)
+    print("Run `tomorrow portal -h` for usage.", file=sys.stderr)
     return 1
 
 
 def add_parser(subparsers) -> None:
-    """Register `vedant portal` on the given argparse subparsers object."""
+    """Register `tomorrow portal` on the given argparse subparsers object."""
     portal_parser = subparsers.add_parser(
         "portal",
         help="Set up Nous Portal (login, model pick, Tool Gateway); see also `portal info`",
         description=(
-            "Run `vedant portal` with no subcommand to log in to Nous Portal "
+            "Run `tomorrow portal` with no subcommand to log in to Nous Portal "
             "and set it up — pick a model, set Nous as your provider, and offer "
-            "the Tool Gateway (the human-readable alias for `vedant auth add "
-            "nous --type oauth`, identical to `vedant setup --portal`). "
+            "the Tool Gateway (the human-readable alias for `tomorrow auth add "
+            "nous --type oauth`, identical to `tomorrow setup --portal`). "
             "Subcommands: login (default), info, open, tools."
         ),
     )

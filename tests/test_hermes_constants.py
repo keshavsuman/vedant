@@ -38,7 +38,7 @@ class TestGetDefaultHermesRoot:
         monkeypatch.delenv("HERMES_HOME", raising=False)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-        assert get_default_hermes_root() == tmp_path / ".vedant"
+        assert get_default_hermes_root() == tmp_path / ".tomorrow"
 
 
 
@@ -62,7 +62,7 @@ class TestGetDefaultHermesRoot:
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
         monkeypatch.setattr(hermes_constants.sys, "platform", "win32")
 
-        assert get_default_hermes_root() == local_appdata / "vedant"
+        assert get_default_hermes_root() == local_appdata / "tomorrow"
 
 
 
@@ -78,7 +78,7 @@ class TestGetHermesHome:
         monkeypatch.setattr(hermes_constants.sys, "platform", "win32")
         monkeypatch.setattr(hermes_constants, "_profile_fallback_warned", False)
 
-        assert get_hermes_home() == local_appdata / "vedant"
+        assert get_hermes_home() == local_appdata / "tomorrow"
 
 
 class TestGetProcessHermesHome:
@@ -416,7 +416,7 @@ class TestSecureParentDir:
 
     def test_safe_path_calls_chmod(self, tmp_path, monkeypatch):
         """Normal nested path (depth >= 3) should call os.chmod."""
-        safe_dir = tmp_path / "home" / "user" / ".vedant"
+        safe_dir = tmp_path / "home" / "user" / ".tomorrow"
         safe_dir.mkdir(parents=True)
         target = safe_dir / "auth.json"
         target.touch()

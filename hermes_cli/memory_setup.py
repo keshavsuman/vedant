@@ -288,7 +288,7 @@ def cmd_setup(args) -> None:
 
     if not providers:
         print("\n  No memory provider plugins detected.")
-        print("  Install a plugin to ~/.localstreet/plugins/ and try again.\n")
+        print("  Install a plugin to ~/.keshav/plugins/ and try again.\n")
         return
 
     # Build picker items
@@ -548,7 +548,7 @@ def cmd_status(args) -> None:
                         print(line)
         else:
             print("\n  Plugin:    NOT installed ✗")
-            print(f"  Install the '{provider_name}' memory plugin to ~/.localstreet/plugins/")
+            print(f"  Install the '{provider_name}' memory plugin to ~/.keshav/plugins/")
 
     if providers:
         print("\n  Installed plugins:")

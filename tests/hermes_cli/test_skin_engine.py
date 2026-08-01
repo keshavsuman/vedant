@@ -143,7 +143,7 @@ class TestUserSkins:
 
         assert skin.name == "broken"
         assert skin.get_color("banner_title") == "#2DD4BF"
-        assert skin.get_branding("agent_name") == "Vedant"
+        assert skin.get_branding("agent_name") == "Tomorrow"
         assert skin.spinner.get("waiting_faces", []) == []
         assert skin.tool_emojis == {}
         assert skin.tool_prefix == "!"

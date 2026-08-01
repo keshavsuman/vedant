@@ -131,7 +131,7 @@ COMMAND_REGISTRY: list[CommandDef] = [
                aliases=("compact",), args_hint="[here [N] | focus topic | --preview|--dry-run]"),
     CommandDef("rollback", "List or restore filesystem checkpoints", "Session",
                args_hint="[number]"),
-    CommandDef("snapshot", "Create or restore state snapshots of Vedant config/state", "Session",
+    CommandDef("snapshot", "Create or restore state snapshots of Tomorrow config/state", "Session",
                cli_only=True, aliases=("snap",), args_hint="[create|restore <id>|prune]"),
     CommandDef("stop", "Kill all running background processes", "Session",
                busy_policy="interrupt_then_dispatch", busy_handler="stop"),
@@ -152,7 +152,7 @@ COMMAND_REGISTRY: list[CommandDef] = [
                busy_policy="dispatch", busy_handler="queue"),
     CommandDef("steer", "Inject a message after the next tool call without interrupting", "Session",
                args_hint="<prompt>", busy_policy="dispatch", busy_handler="steer"),
-    CommandDef("goal", "Set a standing goal Vedant works on across turns until achieved", "Session",
+    CommandDef("goal", "Set a standing goal Tomorrow works on across turns until achieved", "Session",
                args_hint="[text | draft <text> | show | pause | resume | clear | status | wait <pid> | unwait]",
                busy_policy="dispatch", busy_handler="goal"),
     CommandDef("moa", "Run one prompt through the default Mixture of Agents preset, then restore your model", "Session",
@@ -231,10 +231,10 @@ COMMAND_REGISTRY: list[CommandDef] = [
                subcommands=INDICATOR_STYLES),
     CommandDef("voice", "Toggle voice mode", "Configuration",
                args_hint="[on|off|tts|status]", subcommands=("on", "off", "tts", "status")),
-    CommandDef("wake", "Toggle the 'Hey Vedant' wake word listener", "Configuration",
+    CommandDef("wake", "Toggle the 'Hey Tomorrow' wake word listener", "Configuration",
                cli_only=True, args_hint="[on|off|status]",
                subcommands=("on", "off", "status")),
-    CommandDef("busy", "Control what Enter does while Vedant is working", "Configuration",
+    CommandDef("busy", "Control what Enter does while Tomorrow is working", "Configuration",
                cli_only=True, args_hint="[queue|steer|interrupt|status]",
                subcommands=("queue", "steer", "interrupt", "status")),
 
@@ -319,9 +319,9 @@ COMMAND_REGISTRY: list[CommandDef] = [
                cli_only=True),
     CommandDef("image", "Attach a local image file for your next prompt", "Info",
                cli_only=True, args_hint="<path>"),
-    CommandDef("update", "Update Vedant to the latest version", "Info",
+    CommandDef("update", "Update Tomorrow to the latest version", "Info",
                busy_policy="dispatch"),
-    CommandDef("version", "Show Vedant version", "Info", aliases=("v",),
+    CommandDef("version", "Show Tomorrow version", "Info", aliases=("v",),
                busy_policy="dispatch", execute="version"),
     CommandDef("debug", "Upload debug report (system info + logs) and get shareable links", "Info",
                args_hint="[nous|local]"),
@@ -1298,7 +1298,7 @@ def slack_native_slashes() -> list[tuple[str, str, str]]:
     seen: set[str] = set()
 
     # Reserve /hermes as the catch-all top-level command.
-    entries.append(("vedant", "Talk to Vedant or run a subcommand", "[subcommand] [args]"))
+    entries.append(("tomorrow", "Talk to Tomorrow or run a subcommand", "[subcommand] [args]"))
     seen.add("hermes")
 
     def _add(name: str, desc: str, hint: str) -> None:

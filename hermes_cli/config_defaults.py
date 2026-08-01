@@ -1111,7 +1111,7 @@ DEFAULT_CONFIG = {
         # model — see hermes_cli/focus_view.py.
         "focus_view": False,
         "focus_saved_tool_progress": "all",
-        "skin": "localstreet",
+        "skin": "keshav",
         # UI language for static user-facing messages (approval prompts, a
         # handful of gateway slash-command replies).  Does NOT affect agent
         # responses, log lines, tool outputs, or slash-command descriptions.
@@ -1925,7 +1925,7 @@ DEFAULT_CONFIG = {
     # WhatsApp platform settings (gateway mode)
     "whatsapp": {
         # Reply prefix prepended to every outgoing WhatsApp message.
-        # Default (None) uses the built-in "*Vedant*" header.
+        # Default (None) uses the built-in "*Tomorrow*" header.
         # Set to "" (empty string) to disable the header entirely.
         # Supports \n for newlines, e.g. "🤖 *My Bot*\n──────\n"
     },

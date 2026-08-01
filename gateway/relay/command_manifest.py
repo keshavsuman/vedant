@@ -113,7 +113,7 @@ def build_relay_command_manifest() -> List[Dict[str, Any]]:
             "description": "Re-scan skills for new or removed entries",
         },
         {"name": "voice", "description": "Toggle voice reply mode"},
-        {"name": "update", "description": "Update Vedant to the latest version"},
+        {"name": "update", "description": "Update Tomorrow to the latest version"},
         {"name": "restart", "description": "Gracefully restart the Hermes gateway"},
         {
             "name": "approve",
