@@ -280,7 +280,7 @@ def _get_pty_active_session_files(app: "FastAPI") -> dict[str, Path]:
         return app.state.pty_active_session_files
 
 
-app = FastAPI(title="Hermes Agent", version=__version__, lifespan=_lifespan)
+app = FastAPI(title="Vedant", version=__version__, lifespan=_lifespan)
 
 # Memory-provider OAuth connect routes live in the memory layer, not here.
 from hermes_cli.memory_oauth import router as _memory_oauth_router  # noqa: E402
@@ -7466,14 +7466,14 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "telegram": {
         "name": "Telegram",
         "description": "Run Hermes from Telegram DMs, groups, and topics.",
-        "docs_url": "https://core.telegram.org/bots/features#botfather",
+        "docs_url": "",
         "env_vars": ("TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USERS", "TELEGRAM_PROXY"),
         "required_env": ("TELEGRAM_BOT_TOKEN",),
     },
     "discord": {
         "name": "Discord",
         "description": "Connect Hermes to Discord DMs, channels, and threads.",
-        "docs_url": "https://discord.com/developers/applications",
+        "docs_url": "",
         "env_vars": (
             "DISCORD_BOT_TOKEN",
             "DISCORD_ALLOWED_USERS",
@@ -7483,21 +7483,21 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "slack": {
         "name": "Slack",
         "description": "Use Hermes from Slack via Socket Mode. Add allowed Slack member IDs so connected bots can respond.",
-        "docs_url": "https://api.slack.com/apps",
+        "docs_url": "",
         "env_vars": ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN", "SLACK_ALLOWED_USERS"),
         "required_env": ("SLACK_BOT_TOKEN", "SLACK_APP_TOKEN"),
     },
     "mattermost": {
         "name": "Mattermost",
         "description": "Connect Hermes to Mattermost channels and direct messages.",
-        "docs_url": "https://mattermost.com/deploy/",
+        "docs_url": "",
         "env_vars": ("MATTERMOST_URL", "MATTERMOST_TOKEN", "MATTERMOST_ALLOWED_USERS"),
         "required_env": ("MATTERMOST_URL", "MATTERMOST_TOKEN"),
     },
     "matrix": {
         "name": "Matrix",
         "description": "Use Hermes in Matrix rooms and direct messages.",
-        "docs_url": "https://matrix.org/ecosystem/servers/",
+        "docs_url": "",
         "env_vars": (
             "MATRIX_HOMESERVER",
             "MATRIX_ACCESS_TOKEN",
@@ -7509,14 +7509,14 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "signal": {
         "name": "Signal",
         "description": "Connect through a signal-cli REST bridge.",
-        "docs_url": "https://github.com/bbernhard/signal-cli-rest-api",
+        "docs_url": "",
         "env_vars": ("SIGNAL_HTTP_URL", "SIGNAL_ACCOUNT", "SIGNAL_ALLOWED_USERS"),
         "required_env": ("SIGNAL_HTTP_URL", "SIGNAL_ACCOUNT"),
     },
     "whatsapp": {
         "name": "WhatsApp",
         "description": "Use Hermes through the bundled WhatsApp bridge with QR-based auth.",
-        "docs_url": "https://github.com/tulir/whatsmeow",
+        "docs_url": "",
         "env_vars": (
             "WHATSAPP_ENABLED",
             "WHATSAPP_MODE",
@@ -7528,14 +7528,14 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "homeassistant": {
         "name": "Home Assistant",
         "description": "Control your smart home from Hermes via Home Assistant.",
-        "docs_url": "https://www.home-assistant.io/docs/authentication/",
+        "docs_url": "",
         "env_vars": ("HASS_URL", "HASS_TOKEN"),
         "required_env": ("HASS_URL", "HASS_TOKEN"),
     },
     "email": {
         "name": "Email",
         "description": "Talk to Hermes through an IMAP/SMTP mailbox.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/",
+        "docs_url": "",
         "env_vars": (
             "EMAIL_ADDRESS",
             "EMAIL_PASSWORD",
@@ -7552,21 +7552,21 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "sms": {
         "name": "SMS (Twilio)",
         "description": "Send and receive text messages via Twilio.",
-        "docs_url": "https://www.twilio.com/console",
+        "docs_url": "",
         "env_vars": ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN"),
         "required_env": ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN"),
     },
     "dingtalk": {
         "name": "DingTalk",
         "description": "Connect Hermes to DingTalk groups (钉钉).",
-        "docs_url": "https://open.dingtalk.com/document/orgapp/the-robot-development-process",
+        "docs_url": "",
         "env_vars": ("DINGTALK_CLIENT_ID", "DINGTALK_CLIENT_SECRET"),
         "required_env": ("DINGTALK_CLIENT_ID", "DINGTALK_CLIENT_SECRET"),
     },
     "feishu": {
         "name": "Feishu / Lark",
         "description": "Use Hermes inside Feishu / Lark.",
-        "docs_url": "https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/im-v1/intro",
+        "docs_url": "",
         "env_vars": (
             "FEISHU_APP_ID",
             "FEISHU_APP_SECRET",
@@ -7578,19 +7578,19 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "google_chat": {
         "name": "Google Chat",
         "description": "Connect Hermes to Google Chat via Cloud Pub/Sub.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/google_chat",
+        "docs_url": "",
     },
     "wecom": {
         "name": "WeCom (group bot)",
         "description": "Send-only WeCom group bot via webhook.",
-        "docs_url": "https://developer.work.weixin.qq.com/document/path/91770",
+        "docs_url": "",
         "env_vars": ("WECOM_BOT_ID", "WECOM_SECRET"),
         "required_env": ("WECOM_BOT_ID",),
     },
     "wecom_callback": {
         "name": "WeCom (app)",
         "description": "Two-way WeCom integration via callback app.",
-        "docs_url": "https://developer.work.weixin.qq.com/document/path/90930",
+        "docs_url": "",
         "env_vars": (
             "WECOM_CALLBACK_CORP_ID",
             "WECOM_CALLBACK_CORP_SECRET",
@@ -7607,14 +7607,14 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "weixin": {
         "name": "Weixin / WeChat (Personal)",
         "description": "Connect a personal WeChat account through Tencent's iLink Bot API.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/weixin/",
+        "docs_url": "",
         "env_vars": ("WEIXIN_ACCOUNT_ID", "WEIXIN_TOKEN", "WEIXIN_BASE_URL"),
         "required_env": ("WEIXIN_ACCOUNT_ID", "WEIXIN_TOKEN"),
     },
     "bluebubbles": {
         "name": "BlueBubbles (iMessage)",
         "description": "Use Hermes through iMessage via a BlueBubbles server.",
-        "docs_url": "https://bluebubbles.app/",
+        "docs_url": "",
         "env_vars": (
             "BLUEBUBBLES_SERVER_URL",
             "BLUEBUBBLES_PASSWORD",
@@ -7625,7 +7625,7 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "qqbot": {
         "name": "QQ Bot",
         "description": "Connect Hermes to a QQ Bot from the QQ Open Platform.",
-        "docs_url": "https://q.qq.com",
+        "docs_url": "",
         "env_vars": ("QQ_APP_ID", "QQ_CLIENT_SECRET", "QQ_ALLOWED_USERS"),
         "required_env": ("QQ_APP_ID", "QQ_CLIENT_SECRET"),
     },
@@ -7634,34 +7634,34 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     # Channels page can point at the Microsoft Teams setup guide.
     "teams": {
         "description": "Connect Hermes to Microsoft Teams chats via the Bot Framework.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/teams",
+        "docs_url": "",
     },
     # Bundled platform plugins: name comes from the plugin registry label;
     # give each a human description (the registry's install_hint is a
     # dependency note, not a description) and a docs link.
     "irc": {
         "description": "Relay messages between an IRC channel (or DMs) and Hermes.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/irc",
+        "docs_url": "",
     },
     "line": {
         "description": "Use Hermes from LINE via the LINE Messaging API webhook.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/line",
+        "docs_url": "",
     },
     "ntfy": {
         "description": "Chat with Hermes over ntfy push topics (ntfy.sh or self-hosted).",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/ntfy",
+        "docs_url": "",
     },
     "photon": {
         "description": "Use Hermes through iMessage via Photon's managed Spectrum platform.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/photon",
+        "docs_url": "",
     },
     "raft": {
         "description": "Join a Raft workspace as an external agent.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/raft",
+        "docs_url": "",
     },
     "simplex": {
         "description": "Talk to Hermes over SimpleX Chat via a local simplex-chat daemon.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/simplex",
+        "docs_url": "",
     },
     "yuanbao": {
         "name": "Yuanbao (元宝)",
@@ -7672,7 +7672,7 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "api_server": {
         "name": "API server",
         "description": "Expose Hermes as an OpenAI-compatible HTTP API for tools like Open WebUI.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/",
+        "docs_url": "",
         "env_vars": (
             "API_SERVER_ENABLED",
             "API_SERVER_KEY",
@@ -7685,20 +7685,20 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "webhook": {
         "name": "Webhooks",
         "description": "Receive events from GitHub, GitLab, and other webhook sources.",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/webhooks/",
+        "docs_url": "",
         "env_vars": ("WEBHOOK_ENABLED", "WEBHOOK_PORT", "WEBHOOK_SECRET"),
         "required_env": (),
     },
     "msgraph_webhook": {
         "name": "Microsoft Graph Webhook",
         "description": "Receive Microsoft Graph change notifications (Teams meetings, Outlook, …).",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/msgraph-webhook",
+        "docs_url": "",
         "required_env": (),
     },
     "whatsapp_cloud": {
         "name": "WhatsApp Cloud API",
         "description": "Use Hermes via Meta's hosted WhatsApp Cloud API (no local bridge).",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/whatsapp-cloud",
+        "docs_url": "",
     },
     "relay": {
         "name": "Relay (experimental)",
@@ -8757,7 +8757,7 @@ async def cancel_whatsapp_onboarding(pairing_id: str):
     return {"ok": True}
 
 
-_TELEGRAM_ONBOARDING_DEFAULT_URL = "https://setup.hermes-agent.nousresearch.com"
+_TELEGRAM_ONBOARDING_DEFAULT_URL = ""
 _TELEGRAM_ONBOARDING_USER_AGENT = f"HermesDashboard/{__version__}"
 @dataclass
 class _TelegramOnboardingPairing:
@@ -8909,7 +8909,7 @@ async def _telegram_onboarding_request(
 
 @app.post("/api/messaging/telegram/onboarding/start")
 async def start_telegram_onboarding(body: TelegramOnboardingStart):
-    bot_name = (body.bot_name or "Hermes Agent").strip() or "Hermes Agent"
+    bot_name = (body.bot_name or "Vedant").strip() or "Vedant"
     payload = await _telegram_onboarding_request(
         "POST",
         "/v1/telegram/pairings",
@@ -9504,7 +9504,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "name": "Nous Portal",
         "flow": "device_code",
         "cli_command": "hermes auth add nous",
-        "docs_url": "https://portal.nousresearch.com",
+        "docs_url": "",
         "status_fn": None,  # dispatched via auth.get_nous_auth_status
     },
     {
@@ -9512,7 +9512,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "name": "OpenAI OAuth (ChatGPT)",
         "flow": "device_code",
         "cli_command": "hermes auth add openai-codex",
-        "docs_url": "https://platform.openai.com/docs",
+        "docs_url": "",
         "status_fn": None,  # dispatched via auth.get_codex_auth_status
     },
     {
@@ -9520,7 +9520,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "name": "Qwen (via Qwen CLI)",
         "flow": "external",
         "cli_command": "hermes auth add qwen-oauth",
-        "docs_url": "https://github.com/QwenLM/qwen-code",
+        "docs_url": "",
         "status_fn": None,  # dispatched via auth.get_qwen_auth_status
     },
     {
@@ -9533,7 +9533,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         # extension that doesn't change the operator experience.
         "flow": "device_code",
         "cli_command": "hermes auth add minimax-oauth",
-        "docs_url": "https://www.minimax.io",
+        "docs_url": "",
         "status_fn": None,  # dispatched via auth.get_minimax_oauth_auth_status
     },
     {
@@ -9544,7 +9544,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         # 127.0.0.1 callback.
         "flow": "device_code",
         "cli_command": "hermes auth add xai-oauth",
-        "docs_url": "https://hermes-agent.nousresearch.com/docs/guides/xai-grok-oauth",
+        "docs_url": "",
         "status_fn": None,  # dispatched via auth.get_xai_oauth_auth_status
     },
     {
@@ -9552,7 +9552,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "name": "GitHub Copilot (ACP)",
         "flow": "external",
         "cli_command": "copilot /login",
-        "docs_url": "https://docs.github.com/en/copilot",
+        "docs_url": "",
         "status_fn": _copilot_acp_status,
     },
     # ── Anthropic / Claude entries sit at the bottom: the API-key path
@@ -9563,7 +9563,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "name": "Anthropic API Key",
         "flow": "pkce",
         "cli_command": "hermes auth add anthropic",
-        "docs_url": "https://docs.claude.com/en/api/getting-started",
+        "docs_url": "",
         "status_fn": _anthropic_oauth_status,
     },
     {
@@ -9571,7 +9571,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "name": "Anthropic OAuth: Required Extra Usage Credits to Use Subscription",
         "flow": "external",
         "cli_command": "claude setup-token",
-        "docs_url": "https://docs.claude.com/en/docs/claude-code",
+        "docs_url": "",
         "status_fn": _claude_code_only_status,
     },
 )

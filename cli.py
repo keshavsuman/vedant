@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Hermes Agent CLI - Interactive Terminal Interface
+Vedant CLI - Interactive Terminal Interface
 
-A beautiful command-line interface for the Hermes Agent, inspired by Claude Code.
+A beautiful command-line interface for the Vedant, inspired by Claude Code.
 Features ASCII art branding, interactive REPL, toolset selection, and rich formatting.
 
 Usage:
@@ -213,7 +213,7 @@ from hermes_cli.banner import _format_context_length, format_banner_version_labe
 _COMMAND_SPINNER_FRAMES = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
 
-# Load .env from ~/.hermes/.env first, then project root as dev fallback.
+# Load .env from ~/.localstreet/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 from hermes_constants import get_hermes_home, display_hermes_home
 from hermes_cli.browser_connect import (
@@ -340,7 +340,7 @@ def _load_prefill_messages(file_path: str) -> List[Dict[str, Any]]:
     The file should contain a JSON array of {role, content} dicts, e.g.:
         [{"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello!"}]
     
-    Relative paths are resolved from ~/.hermes/.
+    Relative paths are resolved from ~/.localstreet/.
     Returns an empty list if the path is empty or the file doesn't exist.
     """
     if not file_path:
@@ -410,14 +410,14 @@ def load_cli_config() -> Dict[str, Any]:
     Load CLI configuration from config files.
     
     Config lookup order:
-    1. ~/.hermes/config.yaml (user config - preferred)
+    1. ~/.localstreet/config.yaml (user config - preferred)
     2. ./cli-config.yaml (project config - fallback)
     
     Environment variables take precedence over config file values.
     Returns default values if no config file exists.
 
     If HERMES_IGNORE_USER_CONFIG=1 is set (via ``hermes chat --ignore-user-config``),
-    the user config at ``~/.hermes/config.yaml`` is skipped entirely and only the
+    the user config at ``~/.localstreet/config.yaml`` is skipped entirely and only the
     built-in defaults plus the project-level ``cli-config.yaml`` (if any) are used.
     Credentials in ``.env`` are still loaded — this flag only suppresses
     behavioral/config settings.
@@ -790,7 +790,7 @@ def load_cli_config() -> Dict[str, Any]:
 CLI_CONFIG = load_cli_config()
 
 
-# Initialize centralized logging early — agent.log + errors.log in ~/.hermes/logs/.
+# Initialize centralized logging early — agent.log + errors.log in ~/.localstreet/logs/.
 # This ensures CLI sessions produce a log trail even before AIAgent is instantiated.
 try:
     from hermes_logging import setup_logging
@@ -1465,7 +1465,7 @@ def _resolve_worktree_base(
     """Resolve the freshest base ref to branch a new worktree from.
 
     The standalone clone's ``HEAD`` can lag the remote by hundreds of commits
-    (the ``~/.hermes/hermes-agent`` clone is updated only by ``hermes update``,
+    (the ``~/.localstreet/hermes-agent`` clone is updated only by ``hermes update``,
     not on every session). Branching a worktree from that stale ``HEAD`` roots
     every new branch on an old base — so the PR diff GitHub computes against
     current ``main`` balloons with unrelated changes, and the agent has to
@@ -1482,7 +1482,7 @@ def _resolve_worktree_base(
          old behavior, never worse than before.
 
     "Refresh" is deliberately cheap on the startup path (the fetch here used
-    to stall ``hermes -w`` launches for 30-60s on flaky smart-HTTP
+    to stall ``vedant -w`` launches for 30-60s on flaky smart-HTTP
     connections):
 
     - The fetch is SKIPPED entirely when the repo's ``FETCH_HEAD`` is younger
@@ -1612,7 +1612,7 @@ def _setup_worktree(repo_root: str = None, sync_base: bool = True) -> Optional[D
     repo_root = repo_root or _git_repo_root()
     if not repo_root:
         print("\033[31m✗ --worktree requires being inside a git repository.\033[0m")
-        print("  cd into your project repo first, then run hermes -w")
+        print("  cd into your project repo first, then run vedant -w")
         return None
 
     short_id = uuid.uuid4().hex[:8]
@@ -1984,7 +1984,7 @@ def _worktree_commits_all_merged_upstream(
 def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10):
     """Classify a worktree's git lock as live, dead, or absent.
 
-    ``hermes -w`` locks each worktree with reason ``hermes pid=<pid>`` so a
+    ``vedant -w`` locks each worktree with reason ``hermes pid=<pid>`` so a
     concurrent hermes process' startup prune leaves an in-use worktree alone.
     But a *crashed* session leaves the lock behind forever, and
     ``git worktree remove --force`` (single ``-f``) refuses to remove a locked
@@ -2028,7 +2028,7 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
             if not m:
                 # Locked by something we don't recognize as a hermes session
                 # (or lock reason unavailable). Treat as dead — a foreign lock
-                # on a hermes -w worktree is almost certainly a leftover, and
+                # on a vedant -w worktree is almost certainly a leftover, and
                 # the age/dirty/unpushed gates already ran before we got here.
                 return "dead"
             pid = int(m.group(1))
@@ -2204,7 +2204,7 @@ def _prune_stale_worktrees(repo_root: str, max_age_hours: int = 24) -> None:
 
     Covers EVERY directory under ``.worktrees/`` except kanban task trees
     (``t_<hex>`` — owned by the kanban dispatcher's own gc). Scratch trees
-    created by ``hermes -w`` (``hermes-*``) age out fast; named trees created
+    created by ``vedant -w`` (``hermes-*``) age out fast; named trees created
     manually for salvage/review lanes age out on a slower schedule:
 
     - ``hermes-*``: skip under 24h; reap 24h+ when clean and merged/pushed;
@@ -2218,7 +2218,7 @@ def _prune_stale_worktrees(repo_root: str, max_age_hours: int = 24) -> None:
       squash-merged-PR case, which is the dominant ``.worktrees/`` leak since
       those commits stay unreachable from ``refs/remotes/*`` forever.
 
-    Lock handling (orthogonal to age): ``hermes -w`` locks each worktree with
+    Lock handling (orthogonal to age): ``vedant -w`` locks each worktree with
     reason ``hermes pid=<pid>`` so a concurrent hermes process leaves an in-use
     worktree alone. A *live*-locked worktree is skipped at any age; a
     *dead*-locked one (owning pid gone — a crashed session) is unlocked first
@@ -2236,7 +2236,7 @@ def _prune_stale_worktrees(repo_root: str, max_age_hours: int = 24) -> None:
     Also prunes orphaned ``hermes/*`` and ``pr-*`` local branches that
     have no corresponding worktree.
 
-    Performance: this runs on the startup path of every ``hermes -w`` session,
+    Performance: this runs on the startup path of every ``vedant -w`` session,
     and each candidate tree costs several git subprocesses (the ``git cherry``
     patch-equivalence probe dominates at ~0.2-1.0s on a large repo). With
     dozens of accumulated worktrees the serial version added ~11-18s of latency
@@ -2420,7 +2420,7 @@ def _prune_stale_worktrees(repo_root: str, max_age_hours: int = 24) -> None:
 def _prune_orphaned_branches(repo_root: str) -> None:
     """Delete local ``hermes/hermes-*`` and ``pr-*`` branches with no worktree.
 
-    These are auto-generated by ``hermes -w`` sessions and PR review
+    These are auto-generated by ``vedant -w`` sessions and PR review
     workflows respectively.  Once their worktree is gone they serve no
     purpose and just accumulate.
     """
@@ -3950,7 +3950,7 @@ def _build_compact_banner() -> str:
         line1 = "⚕ NOUS HERMES - AI Agent Framework"
         tiny_line = "⚕ NOUS HERMES"
     else:
-        agent_name = _skin.get_branding("agent_name", "Hermes Agent") if _skin else "Hermes Agent"
+        agent_name = _skin.get_branding("agent_name", "Vedant") if _skin else "Vedant"
         line1 = f"{agent_name} - AI Agent Framework"
         tiny_line = agent_name
 
@@ -3958,13 +3958,13 @@ def _build_compact_banner() -> str:
         from hermes_cli import __release_date__ as _release_date
         from hermes_cli import __version__ as _version
 
-        version_line = f"Hermes Agent v{_version} ({_release_date})"
+        version_line = f"Vedant v{_version} ({_release_date})"
     else:
         version_line = format_banner_version_label()
 
     w = min(shutil.get_terminal_size().columns - 2, 88)
     if w < 30:
-        return f"\n[{title_color}]{tiny_line}[/] [dim {dim_color}]- Nous Research[/]\n"
+        return f"\n[{title_color}]{tiny_line}[/] [dim {dim_color}]- Vedant[/]\n"
 
     inner = w - 2  # inside the box border
     bar = "═" * w
@@ -4091,7 +4091,7 @@ def save_config_value(key_path: str, value: any) -> bool:
     Save a value to the active config file at the specified key path.
     
     Respects the same lookup order as load_cli_config():
-    1. ~/.hermes/config.yaml (user config - preferred, used if it exists)
+    1. ~/.localstreet/config.yaml (user config - preferred, used if it exists)
     2. ./cli-config.yaml (project config - fallback)
     
     Args:
@@ -4117,7 +4117,7 @@ def save_config_value(key_path: str, value: any) -> bool:
     config_path = get_hermes_home() / 'config.yaml'
     
     try:
-        # Ensure parent directory exists (for ~/.hermes/config.yaml on first use)
+        # Ensure parent directory exists (for ~/.localstreet/config.yaml on first use)
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Save back atomically while preserving comments, ordering, quotes, and
@@ -4193,7 +4193,7 @@ class _VoiceInputMessage:
 
 class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
     """
-    Interactive CLI for the Hermes Agent.
+    Interactive CLI for the Vedant.
     
     Provides a REPL interface with rich formatting, command history,
     and tool execution capabilities.
@@ -4578,7 +4578,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         _run_state_db_auto_maintenance(self._session_db)
 
         # Opportunistic shadow-repo cleanup — deletes orphan/stale
-        # checkpoint repos under ~/.hermes/checkpoints/.  Opt-in via
+        # checkpoint repos under ~/.localstreet/checkpoints/.  Opt-in via
         # checkpoints.auto_prune, idempotent via .last_prune marker.
         _run_checkpoint_auto_maintenance()
 
@@ -5951,7 +5951,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                 parts.append("⚠ YOLO")
             return self._trim_status_bar_text(" │ ".join(parts), width)
         except Exception:
-            return f"⚕ {self.model if getattr(self, 'model', None) else 'Hermes'}"
+            return f"⚕ {self.model if getattr(self, 'model', None) else 'Vedant'}"
 
     def _get_status_bar_fragments(self):
         if not self._status_bar_visible or getattr(self, '_model_picker_state', None):
@@ -6648,10 +6648,10 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             try:
                 from hermes_cli.skin_engine import get_active_skin
                 _skin = get_active_skin()
-                label = _skin.get_branding("response_label", "⚕ Hermes")
+                label = _skin.get_branding("response_label", "Vedant")
                 _text_hex = _skin.get_color("banner_text", "#FFF8DC")
             except Exception:
-                label = "⚕ Hermes"
+                label = "Vedant"
                 _text_hex = "#FFF8DC"
             # Build a true-color ANSI escape for the response text color
             # so streamed content matches the Rich Panel appearance.
@@ -7120,8 +7120,8 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         if is_nous_hermes_non_agentic(model_name):
             self._console_print()
             self._console_print(
-                "[bold yellow]⚠  Nous Research Hermes 3 & 4 models are NOT agentic and are not "
-                "designed for use with Hermes Agent.[/]"
+                "[bold yellow]⚠  These models are NOT agentic and are not "
+                "designed for use with Vedant.[/]"
             )
             self._console_print(
                 "[dim]   They lack tool-calling capabilities required for agent workflows. "
@@ -7208,7 +7208,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
     def _try_attach_clipboard_image(self) -> bool:
         """Check clipboard for an image and attach it if found.
 
-        Saves the image to ~/.hermes/images/ and appends the path to
+        Saves the image to ~/.localstreet/images/ and appends the path to
         ``_attached_images``.  Returns True if an image was attached.
         """
         from hermes_cli.clipboard import save_clipboard_image
@@ -7386,7 +7386,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     if len(item["tools"]) > 2:
                         tools_str += f", +{len(item['tools'])-2} more"
                     self._console_print(f"   [dim]• {item['name']}[/] [dim italic]({', '.join(item['missing_vars'])})[/]")
-                self._console_print("[dim]   Run 'hermes setup' to configure[/]")
+                self._console_print("[dim]   Run 'vedant setup' to configure[/]")
         except Exception:
             pass  # Don't crash on import errors
     
@@ -7471,7 +7471,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         is_running = bool(getattr(self, "_agent_running", False))
 
         lines = [
-            "Hermes CLI Status",
+            "Vedant Status",
             "",
             f"Session ID: {self.session_id}",
             f"Path: {display_hermes_home()}",
@@ -7553,7 +7553,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     f"    [bold {_accent_hex()}]{('/' + name):<22}[/] [dim]-[/] {_escape(desc)}"
                 )
 
-        _cprint(f"\n  {_DIM}Tip: Just type your message to chat with Hermes!{_RST}")
+        _cprint(f"\n  {_DIM}Tip: Just type your message to chat with Vedant!{_RST}")
         _cprint(f"  {_DIM}Multi-line: Alt+Enter for a new line{_RST}")
         _cprint(f"  {_DIM}Draft editor: Ctrl+G (Alt+G in VSCode/Cursor){_RST}")
         if _is_termux_environment():
@@ -7812,7 +7812,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                 )
                 continue
 
-            _cli_visible_print(f"\n  [Hermes #{visible_index}]{_ts_suffix(msg)}")
+            _cli_visible_print(f"\n  [Vedant #{visible_index}]{_ts_suffix(msg)}")
             tool_calls = msg.get("tool_calls") or []
             if content_text:
                 preview = content_text[:preview_limit]
@@ -8175,11 +8175,11 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
 
 
     def save_conversation(self):
-        """Save the current conversation to a JSON snapshot under ~/.hermes/sessions/saved/.
+        """Save the current conversation to a JSON snapshot under ~/.localstreet/sessions/saved/.
 
         The snapshot is a convenience export for sharing or off-line inspection;
         every message is already persisted incrementally to the SQLite session
-        DB, so the live session remains resumable via ``hermes --resume <id>``
+        DB, so the live session remains resumable via ``vedant --resume <id>``
         regardless of whether the user ever runs ``/save``.
         """
         if not self.conversation_history:
@@ -8205,7 +8205,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                 }, f, indent=2, ensure_ascii=False)
             print(f"(^_^)v Conversation snapshot saved to: {path}")
             if self.session_id:
-                print(f"       Resume the live session with: hermes --resume {self.session_id}")
+                print(f"       Resume the live session with: vedant --resume {self.session_id}")
         except Exception as e:
             print(f"(x_x) Failed to save: {e}")
     
@@ -9908,7 +9908,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             self._handle_browser_command(cmd_original)
         elif canonical == "plugins":
             try:
-                # Discover from disk (bundled + user), matching `hermes plugins
+                # Discover from disk (bundled + user), matching `vedant plugins
                 # list` — so installed-but-not-enabled plugins are visible here
                 # too. The plugin manager only knows about *loaded* plugins, so
                 # using it alone made freshly-installed, not-yet-enabled plugins
@@ -9927,16 +9927,16 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                 # `/plugins` is a quick glance — default to user-installed
                 # plugins (what the user actually added). Bundled provider/
                 # platform plugins are summarized on one line; the full
-                # catalog lives behind `hermes plugins list`.
+                # catalog lives behind `vedant plugins list`.
                 user_entries = [e for e in entries if e[3] != "bundled"]
                 bundled_count = len(entries) - len(user_entries)
 
                 if not user_entries:
                     print("No user plugins installed.")
-                    print("  Install one: hermes plugins install owner/repo")
+                    print("  Install one: vedant plugins install owner/repo")
                     print(f"  Or drop a plugin directory into {display_hermes_home()}/plugins/")
                     if bundled_count:
-                        print(f"  ({bundled_count} bundled plugins available — see: hermes plugins list)")
+                        print(f"  ({bundled_count} bundled plugins available — see: vedant plugins list)")
                 else:
                     # Loaded-plugin details (tools/hooks/commands counts, errors)
                     # keyed by name, when available.
@@ -9966,8 +9966,8 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                         error = f" — {info['error']}" if info.get("error") else ""
                         print(f"  {glyph} {name}{ver}{label}{detail}{error}")
                     if bundled_count:
-                        print(f"  (+{bundled_count} bundled — see: hermes plugins list)")
-                    print("  Enable/disable: hermes plugins enable/disable <name>")
+                        print(f"  (+{bundled_count} bundled — see: vedant plugins list)")
+                    print("  Enable/disable: vedant plugins enable/disable <name>")
             except Exception as e:
                 print(f"Plugin system error: {e}")
         elif canonical == "rollback":
@@ -10911,7 +10911,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         normalized = str(provider or "").strip().lower()
         if normalized != "openai-codex":
             print("  Banked usage resets are only available on the openai-codex provider.")
-            print("  Switch with `/model` or `hermes auth` first.")
+            print("  Switch with `/model` or `vedant auth` first.")
             return
         base_url = (getattr(self.agent, "base_url", None) if self.agent else None) or getattr(self, "base_url", None)
         api_key = (getattr(self.agent, "api_key", None) if self.agent else None) or getattr(self, "api_key", None)
@@ -11534,7 +11534,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             print(f"  ❌ MCP reload failed: {e}")
 
     def _reload_skills(self) -> None:
-        """Reload skills: rescan ~/.hermes/skills/ and queue a note for the
+        """Reload skills: rescan ~/.localstreet/skills/ and queue a note for the
         next user turn.
 
         Skills don't need to live in the system prompt for the model to use
@@ -13551,7 +13551,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                         if not _streaming_box_opened:
                             _streaming_box_opened = True
                             w = self._scrollback_box_width(getattr(self.console, "width", 80))
-                            label = " ⚕ Hermes "
+                            label = " Vedant "
                             if self.show_timestamps:
                                 label = f"{label}{datetime.now().strftime(getattr(self, 'timestamp_format', '%H:%M'))} "
                             fill = w - 2 - HermesCLI._status_bar_display_width(label)
@@ -14008,11 +14008,11 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                 try:
                     from hermes_cli.skin_engine import get_active_skin
                     _skin = get_active_skin()
-                    label = _skin.get_branding("response_label", "⚕ Hermes")
+                    label = _skin.get_branding("response_label", "Vedant")
                     _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", "#CD7F32"))
                     _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", "#FFF8DC"))
                 except Exception:
-                    label = "⚕ Hermes"
+                    label = "Vedant"
                     _resp_color = _maybe_remap_for_light_mode("#CD7F32")
                     _resp_text = _maybe_remap_for_light_mode("#FFF8DC")
 
@@ -14349,9 +14349,9 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             profile_flag = (
                 "" if _active_profile in ("default", "custom") else f" -p {_active_profile}"
             )
-            print(f"  hermes --resume {self.session_id}{profile_flag}")
+            print(f"  vedant --resume {self.session_id}{profile_flag}")
             if session_title:
-                print(f"  hermes -c \"{session_title}\"{profile_flag}")
+                print(f"  vedant -c \"{session_title}\"{profile_flag}")
             print()
             print(f"Session:        {self.session_id}")
             if session_title:
@@ -14624,10 +14624,10 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
         try:
             from hermes_cli.skin_engine import get_active_skin
             _welcome_skin = get_active_skin()
-            _welcome_text = _welcome_skin.get_branding("welcome", "Welcome to Hermes Agent! Type your message or /help for commands.")
+            _welcome_text = _welcome_skin.get_branding("welcome", "Welcome to Vedant! Type your message or /help for commands.")
             _welcome_color = _welcome_skin.get_color("banner_text", "#FFF8DC")
         except Exception:
-            _welcome_text = "Welcome to Hermes Agent! Type your message or /help for commands."
+            _welcome_text = "Welcome to Vedant! Type your message or /help for commands."
             _welcome_color = "#FFF8DC"
         self._console_print(f"[{_welcome_color}]{_welcome_text}[/]")
 
@@ -15628,7 +15628,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             import signal as _sig
             from prompt_toolkit.application import run_in_terminal
             from hermes_cli.skin_engine import get_active_skin
-            agent_name = get_active_skin().get_branding("agent_name", "Hermes Agent")
+            agent_name = get_active_skin().get_branding("agent_name", "Vedant")
             msg = f"\n{agent_name} has been suspended. Run `fg` to bring {agent_name} back."
             def _suspend():
                 os.write(1, msg.encode())
@@ -16205,7 +16205,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     else f"  {other_num_prefix}. Other (type your answer)"
                 )
             preview_lines.extend(_wrap_panel_text(other_label, 60, subsequent_indent="    "))
-            box_width = _panel_box_width("Hermes needs your input", preview_lines)
+            box_width = _panel_box_width("Vedant needs your input", preview_lines)
             inner_text_width = max(8, box_width - 2)
 
             # Pre-wrap choices + Other option — these are mandatory.
@@ -16317,8 +16317,8 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             lines = []
             # Box top border
             lines.append(('class:clarify-border', '╭─ '))
-            lines.append(('class:clarify-title', 'Hermes needs your input'))
-            lines.append(('class:clarify-border', ' ' + ('─' * max(0, box_width - len("Hermes needs your input") - 3)) + '╮\n'))
+            lines.append(('class:clarify-title', 'Vedant needs your input'))
+            lines.append(('class:clarify-border', ' ' + ('─' * max(0, box_width - len("Vedant needs your input") - 3)) + '╮\n'))
             if not use_compact_chrome:
                 _append_blank_panel_line(lines, 'class:clarify-border', box_width)
 
@@ -17180,7 +17180,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
             print(
                 "Error: stdin (fd 0) is not available.\n"
                 "This can happen with certain Python installations (e.g. uv-managed cPython on macOS).\n"
-                "Try reinstalling Python via pyenv or Homebrew, then re-run: hermes setup"
+                "Try reinstalling Python via pyenv or Homebrew, then re-run: vedant setup"
             )
             _run_cleanup()
             self._print_exit_summary()
@@ -17249,7 +17249,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin):
                     f"\nError: stdin is not usable ({_stdin_err}).\n"
                     "This can happen with certain Python installations (e.g. uv-managed cPython on macOS)\n"
                     "where kqueue cannot register fd 0.\n"
-                    "Try reinstalling Python via pyenv or Homebrew, then re-run: hermes setup"
+                    "Try reinstalling Python via pyenv or Homebrew, then re-run: vedant setup"
                 )
             else:
                 raise
@@ -17477,7 +17477,7 @@ def main(
     ignore_rules: bool = False,
 ):
     """
-    Hermes Agent CLI - Interactive AI Assistant
+    Vedant CLI - Interactive AI Assistant
     
     Args:
         query: Single query to execute (then exit). Alias: -q
@@ -17528,7 +17528,7 @@ def main(
     if gateway:
         import asyncio
         from gateway.run import start_gateway
-        print("Starting Hermes Gateway (messaging platforms)...")
+        print("Starting Vedant Gateway (messaging platforms)...")
         asyncio.run(start_gateway())
         return
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Vedant CLI launcher (legacy `hermes` alias). Prefer `vedant` or `localstreet`."""
+"""Vedant CLI launcher."""
 
 if __name__ == "__main__":
     from hermes_cli.main import main

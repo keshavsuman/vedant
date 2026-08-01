@@ -1034,7 +1034,7 @@ def create_profile(
 
     if canon == "default":
         raise ValueError(
-            "Cannot create a profile named 'default' — it is the built-in profile (~/.hermes)."
+            "Cannot create a profile named 'default' — it is the built-in profile (~/.localstreet)."
         )
 
     profile_dir = get_profile_dir(canon)
@@ -1474,7 +1474,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
 
     if canon == "default":
         raise ValueError(
-            "Cannot delete the default profile (~/.hermes).\n"
+            "Cannot delete the default profile (~/.localstreet).\n"
             "To remove everything, use: hermes uninstall"
         )
 
@@ -2053,7 +2053,7 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     validate_profile_name(canon)
     if canon == "default":
         raise ValueError(
-            "Cannot import as 'default' — that is the built-in root profile (~/.hermes). "
+            "Cannot import as 'default' — that is the built-in root profile (~/.localstreet). "
             "Specify a different name: hermes profile import <archive> --name <name>"
         )
 

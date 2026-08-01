@@ -115,7 +115,7 @@ class TestUserSkins:
         assert skin.get_branding("agent_name") == "Custom Agent"
         assert skin.tool_prefix == "▸"
         # Should inherit defaults for unspecified colors
-        assert skin.get_color("banner_border") == "#CD7F32"  # from default
+        assert skin.get_color("banner_border") == "#0F766E"  # from default teal
 
     def test_load_user_skin_invalid_section_types_fall_back_to_defaults(self, tmp_path, monkeypatch):
         from hermes_cli.skin_engine import load_skin
@@ -142,8 +142,8 @@ class TestUserSkins:
         skin = load_skin("broken")
 
         assert skin.name == "broken"
-        assert skin.get_color("banner_title") == "#FFD700"
-        assert skin.get_branding("agent_name") == "Hermes Agent"
+        assert skin.get_color("banner_title") == "#2DD4BF"
+        assert skin.get_branding("agent_name") == "Vedant"
         assert skin.spinner.get("waiting_faces", []) == []
         assert skin.tool_emojis == {}
         assert skin.tool_prefix == "!"

@@ -4,20 +4,20 @@ Hermes CLI - Main entry point.
 
 Usage:
     hermes                     # Interactive chat (default)
-    hermes chat                # Interactive chat
-    hermes gateway             # Run gateway in foreground
-    hermes gateway start       # Start gateway as service
-    hermes gateway stop        # Stop gateway service
-    hermes gateway status      # Show gateway status
-    hermes gateway install     # Install gateway service
-    hermes gateway uninstall   # Uninstall gateway service
-    hermes setup               # Interactive setup wizard
+    vedant chat                # Interactive chat
+    vedant gateway             # Run gateway in foreground
+    vedant gateway start       # Start gateway as service
+    vedant gateway stop        # Stop gateway service
+    vedant gateway status      # Show gateway status
+    vedant gateway install     # Install gateway service
+    vedant gateway uninstall   # Uninstall gateway service
+    vedant setup               # Interactive setup wizard
     hermes logout              # Clear stored authentication
     hermes status              # Show status of all components
-    hermes cron                # Manage cron jobs
-    hermes cron list           # List cron jobs
-    hermes cron status         # Check if cron scheduler is running
-    hermes doctor              # Check configuration and dependencies
+    vedant cron                # Manage cron jobs
+    vedant cron list           # List cron jobs
+    vedant cron status         # Check if cron scheduler is running
+    vedant doctor              # Check configuration and dependencies
     hermes honcho setup                    # Configure Honcho AI memory integration
     hermes honcho status                   # Show Honcho config and connection status
     hermes honcho sessions                 # List directory → session name mappings
@@ -35,10 +35,10 @@ Usage:
     hermes honcho identity <file>          # Seed AI peer identity from a file (SOUL.md etc.)
     hermes honcho migrate                  # Step-by-step migration guide: OpenClaw native → Hermes + Honcho
     hermes version             Show version
-    hermes update              Update to latest version
-    hermes uninstall           Uninstall Hermes Agent
+    vedant update              Update to latest version
+    vedant uninstall           Uninstall Vedant
     hermes acp                 Run as an ACP server for editor integration
-    hermes sessions browse     Interactive session picker with search
+    vedant sessions browse     Interactive session picker with search
 
     hermes claw migrate --dry-run  # Preview migration without changes
 """
@@ -49,12 +49,12 @@ Usage:
 #
 # Guarded against ModuleNotFoundError because ``hermes_bootstrap`` is a
 # top-level module registered via pyproject.toml's ``py-modules`` list.
-# When the user upgrades code via ``git pull`` (or ``hermes update``
+# When the user upgrades code via ``git pull`` (or ``vedant update``
 # crashes between ``git reset --hard`` and ``uv pip install -e .``), the
 # new code references ``hermes_bootstrap`` but the editable install's
 # ``.pth`` file still points at the old set of top-level modules.  Without
 # this guard, hermes crashes on import and the user can't run
-# ``hermes update`` to recover.  Missing the bootstrap means UTF-8 stdio
+# ``vedant update`` to recover.  Missing the bootstrap means UTF-8 stdio
 # setup is skipped on Windows — degraded, not broken.  POSIX is unaffected.
 try:
     import hermes_bootstrap  # noqa: F401
@@ -74,7 +74,7 @@ import os
 import sys
 
 # Early venv self-heal — MUST run before any third-party import below.  When
-# a prior ``hermes update`` left a recovery marker and a core package's import
+# a prior ``vedant update`` left a recovery marker and a core package's import
 # files were wiped (#57828 — failed lazy backend refresh), the module-level
 # ``from hermes_cli.env_loader import ...`` / ``from hermes_cli.config import
 # ...`` imports further down would crash before ``main()`` ever reaches
@@ -219,7 +219,7 @@ def _set_process_title() -> None:
     Purely cosmetic — non-fatal on any platform.
 
     Strategy (try in order):
-      1. ``setproctitle`` (opt-in dep — installed via ``hermes tools`` or
+      1. ``setproctitle`` (opt-in dep — installed via ``vedant tools`` or
          ``pip install setproctitle``, or bundled in a future release).
       2. ctypes ``prctl(PR_SET_NAME)`` (Linux only, 15-char limit).
       3. ctypes ``pthread_setname_np`` (macOS only, kernel thread name —
@@ -335,7 +335,7 @@ def _suppress_mouse_residue_early() -> None:
     if not _wants_tui_early():
         return
     try:
-        # Skip when stdout is redirected (`hermes --tui … >log`, CI capture):
+        # Skip when stdout is redirected (`vedant --tui … >log`, CI capture):
         # the bytes can't reach the terminal anyway and would just pollute
         # the log with raw CSI.
         if not os.isatty(1):
@@ -391,7 +391,7 @@ def _read_openai_version_fast() -> str | None:
 def _print_fast_version_info() -> None:
     from hermes_cli import __release_date__, __version__
 
-    print(f"Hermes Agent v{__version__} ({__release_date__})")
+    print(f"Vedant v{__version__} ({__release_date__})")
     print(f"Install directory: {PROJECT_ROOT}")
 
     print(f"Python: {sys.version.split()[0]}")
@@ -401,7 +401,7 @@ def _print_fast_version_info() -> None:
 
 
 def _try_termux_ultrafast_version() -> bool:
-    """Handle ``hermes --version`` before config/logging imports on Termux."""
+    """Handle ``vedant --version`` before config/logging imports on Termux."""
     if os.environ.get("HERMES_TERMUX_DISABLE_FAST_CLI") == "1":
         return False
     if not _is_termux_startup_environment_fast():
@@ -480,7 +480,7 @@ from hermes_cli.subcommands.claw import build_claw_parser
 def _require_tty(command_name: str) -> None:
     """Exit with a clear error if stdin is not a terminal.
 
-    Interactive TUI commands (hermes tools, hermes setup, hermes model) use
+    Interactive TUI commands (vedant tools, vedant setup, vedant model) use
     curses or input() prompts that spin at 100% CPU when stdin is a pipe.
     This guard prevents accidental non-interactive invocation.
     """
@@ -506,7 +506,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # We intercept --profile/-p from sys.argv here and set the env var so that
 # every subsequent ``os.getenv("HERMES_HOME", ...)`` resolves correctly.
 # The flag is stripped from sys.argv so argparse never sees it.
-# Falls back to ~/.hermes/active_profile for sticky default.
+# Falls back to ~/.localstreet/active_profile for sticky default.
 # ---------------------------------------------------------------------------
 def _apply_profile_override() -> None:
     """Pre-parse --profile/-p and set HERMES_HOME before imports."""
@@ -516,7 +516,7 @@ def _apply_profile_override() -> None:
     profile_index = None
 
     def _inside_mcp_add_args(index: int) -> bool:
-        """True once argv reaches `hermes mcp add ... --args <command argv>`.
+        """True once argv reaches `vedant mcp add ... --args <command argv>`.
 
         ``mcp add --args`` is command-argv passthrough. Flags after that point
         belong to the child MCP command (for example Docker MCP Toolkit's
@@ -530,7 +530,7 @@ def _apply_profile_override() -> None:
         return True
 
     def _resolve_sudo_user_profile_env(name: str) -> str | None:
-        """Resolve `sudo hermes -p <name>` against the invoking user's home.
+        """Resolve `sudo vedant -p <name>` against the invoking user's home.
 
         `_apply_profile_override()` runs before argparse, so `--run-as-user`
         is not available yet. For sudo invocations, the best available signal
@@ -561,7 +561,7 @@ def _apply_profile_override() -> None:
         return None
 
     # 1. Check for explicit -p / --profile flag. Historically this worked even
-    # after the subcommand (`hermes chat -p coder`), so keep scanning broadly.
+    # after the subcommand (`vedant chat -p coder`), so keep scanning broadly.
     # The exception is command-argv passthrough regions such as `mcp add --args`.
     value_flags = {
         "-z", "--oneshot",
@@ -617,11 +617,11 @@ def _apply_profile_override() -> None:
     # 1.5 If HERMES_HOME is already set and no explicit flag was given, trust it
     # only when it already points to a specific profile directory.  The
     # distinguishing heuristic: a profile path has "profiles" as its immediate
-    # parent directory name (e.g. ~/.hermes/profiles/coder or
+    # parent directory name (e.g. ~/.localstreet/profiles/coder or
     # /opt/data/profiles/coder).  If HERMES_HOME points to the hermes root
     # instead (e.g. systemd hardcodes HERMES_HOME=/root/.hermes), we must
     # still read active_profile — the user may have switched profiles via
-    # `hermes profile use` and the gateway should honour that choice.
+    # `vedant profile use` and the gateway should honour that choice.
     # See issue #22502.
     hermes_home_env = os.environ.get("HERMES_HOME", "")
     if profile_name is None and hermes_home_env:
@@ -634,7 +634,7 @@ def _apply_profile_override() -> None:
     # run-script as HERMES_S6_SUPERVISED_CHILD=1) must NOT follow the sticky
     # active_profile. Each supervised slot has a fixed profile identity: named
     # slots pass ``-p <name>`` explicitly (handled in step 1 above), and the
-    # reserved ``gateway-default`` slot runs bare ``hermes gateway run`` to mean
+    # reserved ``gateway-default`` slot runs bare ``vedant gateway run`` to mean
     # "the root HERMES_HOME profile". If the reserved default child read
     # active_profile here, switching the active profile (e.g. via the dashboard)
     # would silently redirect the default gateway into that profile — yielding a
@@ -683,7 +683,7 @@ def _apply_profile_override() -> None:
 
 _apply_profile_override()
 
-# Load .env from ~/.hermes/.env first, then project root as dev fallback.
+# Load .env from ~/.localstreet/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 from hermes_cli.config import get_hermes_home
 from hermes_cli.env_loader import load_hermes_dotenv
@@ -734,7 +734,7 @@ try:
 except Exception:
     pass  # best-effort — redaction stays at default (enabled) on config errors
 
-# Initialize centralized file logging early — all `hermes` subcommands
+# Initialize centralized file logging early — all `vedant` subcommands
 # (chat, setup, gateway, config, etc.) write to agent.log + errors.log.
 # Dashboard entrypoints bootstrap with GUI mode so gui.log is always present
 # during GUI testing, including pre-dispatch startup failures.
@@ -867,7 +867,7 @@ def _read_git_revision_fingerprint(repo_root: Path) -> str | None:
                 return f"git:{ref}:{packed_sha}"
             # Ref name is known but unresolved — still stable across launches,
             # and the version/release fallback in the caller will invalidate
-            # after `hermes update`.
+            # after `vedant update`.
             return f"git:{ref}:unresolved"
         return f"git:HEAD:{head}"
     except OSError:
@@ -1340,7 +1340,7 @@ def _resolve_last_session(source: str = "cli") -> Optional[str]:
     """Look up the most recently-used session ID for a source.
 
     Scoped to the current workspace first (git repo root, else cwd) so
-    ``hermes -c`` from repo A continues repo A's last session rather than the
+    ``vedant -c`` from repo A continues repo A's last session rather than the
     global MRU. Falls back to the unscoped MRU when no session matches the
     current workspace, preserving the old behaviour for fresh directories.
     """
@@ -1575,9 +1575,9 @@ def _print_tui_exit_summary(
 
     print()
     print("Resume this session with:")
-    print(f"  hermes --tui --resume {target}")
+    print(f"  vedant --tui --resume {target}")
     if title:
-        print(f'  hermes --tui -c "{title}"')
+        print(f'  vedant --tui -c "{title}"')
     print()
     print(f"Session:        {target}")
     if title:
@@ -1875,7 +1875,7 @@ def _restore_tui_workspace(tui_dir: Path) -> bool:
     """Try to restore a missing ``ui-tui/`` from git, returning True on success.
 
     On Windows an antivirus / NTFS filter driver can leave tracked ``ui-tui/``
-    files deleted in the working tree after ``hermes update`` (HEAD stays
+    files deleted in the working tree after ``vedant update`` (HEAD stays
     intact; the files just vanish — see issue #49145). Those files are tracked,
     so ``git restore`` puts them back deterministically. Best-effort: returns
     False (rather than raising) when git is unavailable, this isn't a checkout,
@@ -1918,12 +1918,12 @@ def _ensure_tui_workspace(tui_dir: Path) -> None:
     print(
         "Error: the TUI workspace is missing from this Hermes checkout.\n"
         f"Expected directory: {tui_dir}\n"
-        "This usually means `hermes update` left tracked ui-tui files deleted.\n"
+        "This usually means `vedant update` left tracked ui-tui files deleted.\n"
         "Recovery:\n"
         "  1. From the Hermes checkout, run `git restore -- ui-tui`\n"
         "  2. Run `npm install --silent --no-fund --no-audit --progress=false`\n"
-        "  3. Retry `hermes --tui`\n"
-        "If the checkout is still inconsistent, run `hermes update --force`.",
+        "  3. Retry `vedant --tui`\n"
+        "If the checkout is still inconsistent, run `vedant update --force`.",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -2363,7 +2363,7 @@ def _launch_tui(
     # HERMES_TUI_RESUME is an internal hand-off from the Python wrapper to the
     # Ink app.  Because we start from a full os.environ snapshot (via
     # build_subprocess_env), an exported/stale value
-    # in the user's shell would otherwise make a plain `hermes --tui` try to
+    # in the user's shell would otherwise make a plain `vedant --tui` try to
     # resume a non-existent session and leave the UI at "error: session not
     # found" with no live session.  Only forward a resume id that argparse
     # resolved for this invocation; direct `node ui-tui/dist/entry.js` users can
@@ -2393,7 +2393,7 @@ def _launch_tui(
             except Exception:
                 pass
 
-    # Exit code 42 = TUI requested an update. Relaunch as `hermes update` so
+    # Exit code 42 = TUI requested an update. Relaunch as `vedant update` so
     # the user sees update output directly and gets the new version.
     # preserve_inherited=False ensures --tui and other flags are NOT carried
     # into the update subcommand.
@@ -2412,9 +2412,9 @@ def _pin_kanban_board_env() -> None:
     """Pin the active kanban board into ``HERMES_KANBAN_BOARD`` for the chat session.
 
     Without this, in-process tools (``kanban_*``) and shelled-out CLI calls
-    (``hermes kanban …``) resolve the board on different paths: the env-pin if
+    (``vedant kanban …``) resolve the board on different paths: the env-pin if
     set, otherwise the global ``<root>/kanban/current`` file. A concurrent
-    ``hermes kanban boards switch`` from another session can flip the file
+    ``vedant kanban boards switch`` from another session can flip the file
     mid-turn, so the same chat sees its tool calls hit board A while its shell
     calls hit board B (#20074). Pinning at chat boot mirrors what the
     dispatcher already does for spawned workers.
@@ -2430,7 +2430,7 @@ def _pin_kanban_board_env() -> None:
 
 
 def _sync_bundled_skills_quietly() -> None:
-    """Seed ``~/.hermes/skills/`` with the bundled skill library on first launch.
+    """Seed ``~/.localstreet/skills/`` with the bundled skill library on first launch.
 
     Called from any CLI entrypoint that the user might use as their first
     interaction with Hermes — chat, dashboard (the desktop GUI's backend),
@@ -2508,7 +2508,7 @@ def cmd_chat(args):
                 args.resume = resolved
             else:
                 print(f"No session found matching '{continue_val}'.")
-                print("Use 'hermes sessions list' to see available sessions.")
+                print("Use 'vedant sessions list' to see available sessions.")
                 sys.exit(1)
         else:
             # -c with no argument — continue the most recent session
@@ -2572,7 +2572,7 @@ def cmd_chat(args):
             for _ref in _retired_xai_refs:
                 sys.stderr.write(f"  \033[33m⚠\033[0m {format_issue(_ref)}\n")
             sys.stderr.write(f"  \033[2mMigration guide: {MIGRATION_GUIDE_URL}\033[0m\n")
-            sys.stderr.write("  \033[2mRun 'hermes doctor' for details.\033[0m\n\n")
+            sys.stderr.write("  \033[2mRun 'vedant doctor' for details.\033[0m\n\n")
     except Exception:
         pass
 
@@ -2583,7 +2583,7 @@ def cmd_chat(args):
             "It looks like Hermes isn't configured yet -- no API keys or providers found."
         )
         print()
-        print("  Run:  hermes setup")
+        print("  Run:  vedant setup")
         print()
 
         from hermes_cli.setup import (
@@ -2605,7 +2605,7 @@ def cmd_chat(args):
             cmd_setup(args)
             return
         print()
-        print("You can run 'hermes setup' at any time to configure.")
+        print("You can run 'vedant setup' at any time to configure.")
         sys.exit(1)
 
     # Start update check in background (runs while other init happens).
@@ -2634,7 +2634,7 @@ def cmd_chat(args):
         os.environ["HERMES_YOLO_MODE"] = "1"
 
     # --ignore-user-config: make load_cli_config() / load_config() skip the
-    # user's ~/.hermes/config.yaml and return built-in defaults. Set BEFORE
+    # user's ~/.localstreet/config.yaml and return built-in defaults. Set BEFORE
     # importing cli (which runs `CLI_CONFIG = load_cli_config()` at module
     # import time). Credentials in .env are still loaded — this flag only
     # ignores behavioral/config settings.
@@ -2788,7 +2788,7 @@ def cmd_whatsapp(args):
     # We intentionally don't write WHATSAPP_ENABLED=true here.  If the user
     # aborts the wizard later (Ctrl+C, failed npm install, missed QR scan),
     # we'd otherwise leave .env claiming WhatsApp is ready when the bridge
-    # has no creds.json.  Every subsequent `hermes gateway` then paid a 30s
+    # has no creds.json.  Every subsequent `vedant gateway` then paid a 30s
     # bridge-bootstrap timeout and queued WhatsApp for indefinite retries.
     # Now: aborted setup leaves WHATSAPP_ENABLED unset → gateway skips it.
     # Re-runs that already have WHATSAPP_ENABLED=true (from a prior
@@ -2895,7 +2895,7 @@ def cmd_whatsapp(args):
             if (get_env_value("WHATSAPP_ENABLED") or "").lower() != "true":
                 save_env_value("WHATSAPP_ENABLED", "true")
             print("\n✓ WhatsApp is configured and paired!")
-            print("  Start the gateway with: hermes gateway")
+            print("  Start the gateway with: vedant gateway")
             return
 
     # ── Step 6: QR code pairing ──────────────────────────────────────────
@@ -2931,30 +2931,30 @@ def cmd_whatsapp(args):
     if (session_dir / "creds.json").exists():
         # Only enable WhatsApp now that pairing actually succeeded.  If the
         # user Ctrl+C'd at any earlier step, WHATSAPP_ENABLED stays unset
-        # and `hermes gateway` skips it cleanly instead of paying a 30s
+        # and `vedant gateway` skips it cleanly instead of paying a 30s
         # bridge timeout + queueing the platform for indefinite retries.
         save_env_value("WHATSAPP_ENABLED", "true")
         print("✓ WhatsApp paired successfully!")
         print()
         if wa_mode == "bot":
             print("  Next steps:")
-            print("    1. Start the gateway:  hermes gateway")
+            print("    1. Start the gateway:  vedant gateway")
             print("    2. Send a message to the bot's WhatsApp number")
             print("    3. The agent will reply automatically")
             print()
-            print("  Tip: Agent responses are prefixed with '⚕ Hermes Agent'")
+            print("  Tip: Agent responses are prefixed with '⚕ Vedant'")
         else:
             print("  Next steps:")
-            print("    1. Start the gateway:  hermes gateway")
+            print("    1. Start the gateway:  vedant gateway")
             print("    2. Open WhatsApp → Message Yourself")
             print("    3. Type a message — the agent will reply")
             print()
-            print("  Tip: Agent responses are prefixed with '⚕ Hermes Agent'")
+            print("  Tip: Agent responses are prefixed with '⚕ Vedant'")
             print("  so you can tell them apart from your own messages.")
         print()
-        print("  Or install as a service: hermes gateway install")
+        print("  Or install as a service: vedant gateway install")
     else:
-        print("⚠ Pairing may not have completed. Run 'hermes whatsapp' to try again.")
+        print("⚠ Pairing may not have completed. Run 'vedant whatsapp' to try again.")
 
 
 def cmd_whatsapp_cloud(args):
@@ -2966,7 +2966,7 @@ def cmd_whatsapp_cloud(args):
     common setup mistakes (e.g. pasting a phone number into the Phone
     Number ID field).
 
-    Distinct from ``hermes whatsapp`` (the Baileys bridge wizard) — the
+    Distinct from ``vedant whatsapp`` (the Baileys bridge wizard) — the
     two adapters are complementary, not alternatives. See
     ``hermes_cli/setup_whatsapp_cloud.py``.
     """
@@ -3014,7 +3014,7 @@ def _is_profile_api_key_provider(provider_id: str) -> bool:
 def select_provider_and_model(args=None):
     """Core provider selection + model picking logic.
 
-    Shared by ``cmd_model`` (``hermes model``) and the setup wizard
+    Shared by ``cmd_model`` (``vedant model``) and the setup wizard
     (``setup_model_provider`` in setup.py).  Handles the full flow:
     provider picker, credential prompting, model selection, and config
     persistence.
@@ -3207,8 +3207,8 @@ def select_provider_and_model(args=None):
             active = active_def.id
         else:
             warning = (
-                f"Unknown provider '{effective_provider}'. Check 'hermes model' for "
-                "available providers, or run 'hermes doctor' to diagnose config "
+                f"Unknown provider '{effective_provider}'. Check 'vedant model' for "
+                "available providers, or run 'vedant doctor' to diagnose config "
                 "issues."
             )
             print(f"Warning: {warning} Falling back to auto provider detection.")
@@ -3252,7 +3252,7 @@ def select_provider_and_model(args=None):
     # resolves back to a concrete slug, so the dispatch chain below is
     # unchanged. Custom providers and the trailing actions stay flat.
     canonical_descs = {p.slug: p.tui_desc for p in CANONICAL_PROVIDERS}
-    # Honor ``model_catalog.excluded_providers`` so the CLI ``hermes model``
+    # Honor ``model_catalog.excluded_providers`` so the CLI ``vedant model``
     # picker hides the same providers the gateway/TUI pickers do. A canonical
     # provider is hidden if its slug OR any of its aliases appears in the
     # exclusion list (case-insensitive), matching list_authenticated_providers'
@@ -3441,7 +3441,7 @@ def select_provider_and_model(args=None):
 
     # ── Post-switch cleanup: clear stale OPENAI_BASE_URL ──────────────
     # When the user switches to a named provider (anything except "custom"),
-    # a leftover OPENAI_BASE_URL in ~/.hermes/.env can poison auxiliary
+    # a leftover OPENAI_BASE_URL in ~/.localstreet/.env can poison auxiliary
     # clients that use provider:auto. Clear it proactively.  (#5161)
     if selected_provider not in {
         "custom",
@@ -3452,7 +3452,7 @@ def select_provider_and_model(args=None):
 
 
 def _clear_stale_openai_base_url():
-    """Remove OPENAI_BASE_URL from ~/.hermes/.env if the active provider is not 'custom'.
+    """Remove OPENAI_BASE_URL from ~/.localstreet/.env if the active provider is not 'custom'.
 
     After a provider switch, a leftover OPENAI_BASE_URL causes auxiliary
     clients (compression, vision, delegation) with provider:auto to route
@@ -3489,9 +3489,9 @@ def _clear_stale_openai_base_url():
 # its own provider+model pair in config.yaml under `auxiliary.<task>`.
 #
 # The UI lives behind "Configure auxiliary models..." at the bottom of the
-# `hermes model` provider picker. It does NOT re-run credential setup — it
+# `vedant model` provider picker. It does NOT re-run credential setup — it
 # only routes already-authenticated providers to specific aux tasks. Users
-# configure new providers through the normal `hermes model` flow first.
+# configure new providers through the normal `vedant model` flow first.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # (task_key, display_name, short_description)
@@ -3634,7 +3634,7 @@ def _aux_config_menu() -> None:
         print("  Side tasks (vision, compression, web extraction, etc.) default")
         print('  to your main chat model.  "auto" means "use my main model" —')
         print("  Hermes only falls back to a lightweight backend (OpenRouter,")
-        print("  Nous Portal) if the main model is unavailable.  Override a")
+        print("  account portal) if the main model is unavailable.  Override a")
         print("  task below if you want it pinned to a specific provider/model.")
         print()
 
@@ -3684,7 +3684,7 @@ def _aux_select_for_task(task: str) -> None:
     shows: authenticated built-ins, the user's own ``providers:`` /
     ``custom_providers:`` endpoints, and providers whose credential pool is
     temporarily exhausted. Only already-configured providers appear; users set
-    up new ones through the normal ``hermes model`` flow, then route aux tasks
+    up new ones through the normal ``vedant model`` flow, then route aux tasks
     to them here.
     """
     from hermes_cli.config import load_config
@@ -4166,8 +4166,8 @@ def _remove_custom_provider(config):
 # Lazy-export the model catalog at module level. Tests and a handful of
 # downstream call sites read `hermes_cli.main._PROVIDER_MODELS` directly,
 # so the symbol needs to be reachable as a module attribute. But importing
-# the catalog eagerly costs ~55ms on every `hermes` invocation — including
-# fast paths like `hermes --version` and slash-command dispatch that never
+# the catalog eagerly costs ~55ms on every `vedant` invocation — including
+# fast paths like `vedant --version` and slash-command dispatch that never
 # touch the catalog. PEP 562 module-level __getattr__ defers the import
 # until first attribute access, so the cost is only paid by callers that
 # actually look up the catalog. Termux already defers via the same
@@ -4291,11 +4291,11 @@ def _prompt_api_key(
     provider_id: str = "",
     existing_source: str = "",
 ) -> tuple:
-    """Shared API-key entry point for ``hermes setup`` / ``hermes model``.
+    """Shared API-key entry point for ``vedant setup`` / ``vedant model``.
 
     Handles both first-time entry and the already-configured case.  When a key
     is already present, offers [K]eep / [R]eplace / [C]lear so the user can
-    recover from a malformed paste without editing ``~/.hermes/.env`` by hand.
+    recover from a malformed paste without editing ``~/.localstreet/.env`` by hand.
 
     Returns ``(resolved_key, abort)``.  ``abort=True`` means the caller should
     ``return`` immediately — the user cancelled entry, declined to replace, or
@@ -4370,7 +4370,7 @@ def _prompt_api_key(
     if choice.startswith("c") and not pool_backed:
         save_env_value(key_env, "")
         print(
-            f"  API key cleared.  Re-run `hermes setup` to configure {pconfig.name} again."
+            f"  API key cleared.  Re-run `vedant setup` to configure {pconfig.name} again."
         )
         return "", True
 
@@ -4484,7 +4484,7 @@ def _run_anthropic_oauth_flow(save_env_value):
         print("    1. Install Claude Code:  npm install -g @anthropic-ai/claude-code")
         print("    2. Run:                  claude setup-token")
         print("    3. Follow the browser prompts to authorize")
-        print("    4. Re-run:               hermes model")
+        print("    4. Re-run:               vedant model")
         print()
         print("  Or paste an existing setup-token now (sk-ant-oat-...):")
         print()
@@ -4617,7 +4617,7 @@ def cmd_sync(args):
             print(
                 f"'{skill}' is not sync-eligible (bundled, hub-installed, "
                 f"external, or not found). Only agent-created / user-authored "
-                f"skills under ~/.hermes/skills/ can sync.",
+                f"skills under ~/.localstreet/skills/ can sync.",
                 file=sys.stderr,
             )
             return 1
@@ -4643,7 +4643,7 @@ def cmd_sync(args):
                 print(
                     f"  {len(modified)} with local edits not yet shared: "
                     f"{', '.join(modified)}\n"
-                    f"  Share them back with `hermes sync propose <skill>`. "
+                    f"  Share them back with `vedant sync propose <skill>`. "
                     f"Org updates will not overwrite them.",
                     file=sys.stderr,
                 )
@@ -4654,7 +4654,7 @@ def cmd_sync(args):
                 file=sys.stderr,
             )
         if not status.get("logged_in"):
-            print("\nNot logged into Nous Portal — sync is inert.", file=sys.stderr)
+            print("\nNot logged into the account portal — sync is inert.", file=sys.stderr)
         elif not status.get("nous_admin"):
             print(
                 "\nSync is not enabled for your account yet.",
@@ -4719,10 +4719,10 @@ def cmd_sync(args):
                         file=sys.stderr,
                     )
         elif sub == "push":
-            result = ssc.push_skills(identity=identity, message="hermes sync push")
+            result = ssc.push_skills(identity=identity, message="vedant sync push")
         elif sub == "now":
             pull_res = ssc.pull_skills(identity=identity)
-            push_res = ssc.push_skills(identity=identity, message="hermes sync now")
+            push_res = ssc.push_skills(identity=identity, message="vedant sync now")
             result = {"pull": pull_res, "push": push_res}
         else:
             print(f"Unknown sync subcommand: {sub}", file=sys.stderr)
@@ -4745,7 +4745,7 @@ def cmd_webhook(args):
 def cmd_slack(args):
     """Slack integration helpers.
 
-    Dispatches ``hermes slack <subcommand>``. Currently supports:
+    Dispatches ``vedant slack <subcommand>``. Currently supports:
       manifest — print or write a Slack app manifest with every gateway
                  command registered as a first-class slash.
     """
@@ -4759,7 +4759,7 @@ def cmd_slack(args):
             "  manifest   Generate a Slack app manifest with every gateway\n"
             "             command registered as a native slash\n"
             "\n"
-            "Run `hermes slack manifest -h` for details.",
+            "Run `vedant slack manifest -h` for details.",
             file=sys.stderr,
         )
         return 1
@@ -4805,7 +4805,7 @@ def cmd_doctor(args):
 
 
 def cmd_security(args):
-    """Dispatch `hermes security <subcmd>`."""
+    """Dispatch `vedant security <subcmd>`."""
     sub = getattr(args, "security_command", None)
     if sub in ("audit", None):
         from hermes_cli.security_audit import cmd_security_audit
@@ -4818,7 +4818,7 @@ def cmd_security(args):
 
 
 def cmd_approvals(args):
-    """Dispatch `hermes approvals <subcmd>`."""
+    """Dispatch `vedant approvals <subcmd>`."""
     from hermes_cli.approvals_suggest import approvals_command
 
     status = approvals_command(args)
@@ -4927,7 +4927,7 @@ def cmd_version(args):
 
 
 def cmd_uninstall(args):
-    """Uninstall Hermes Agent (or just the Chat GUI with --gui)."""
+    """Uninstall Vedant (or just the Chat GUI with --gui)."""
     # Machine-readable install snapshot for the desktop app's uninstall UI.
     # Must run before any TTY gate — it's called from a non-interactive child.
     if getattr(args, "gui_summary", False):
@@ -5093,16 +5093,16 @@ def _sweep_stale_bytecode_if_checkout_changed() -> None:
     The stale-bytecode bug class (issues #6207, #60242; Dhruv's WhatsApp
     ``cannot import name 'parse_model_flags_detailed'`` report) has one
     shared shape: the checkout's ``.py`` files change (git pull inside
-    ``hermes update``, a manual ``git pull``, a ZIP update, a file-sync
+    ``vedant update``, a manual ``git pull``, a ZIP update, a file-sync
     restore) while ``__pycache__`` retains bytecode from the previous
     revision, and a later process trusts the stale ``.pyc`` instead of the
     fresh source.
 
-    Update-time clears alone can never close this class: ``hermes update``
+    Update-time clears alone can never close this class: ``vedant update``
     always executes the PRE-pull updater code, so any hardening added to it
     only takes effect one update late, and manual ``git pull`` never runs
     the updater at all. This launch-time guard closes the loop: every
-    ``hermes`` entry point compares the checkout fingerprint (cheap file
+    ``vedant`` entry point compares the checkout fingerprint (cheap file
     reads, no git subprocess) against the last-validated stamp and sweeps
     the bytecode cache once when they diverge.
 
@@ -5138,7 +5138,7 @@ def _web_ui_build_needed(web_dir: Path) -> bool:
 
     Uses a SHA-256 content hash of the web source tree (the same approach
     ``_desktop_build_needed()`` already uses for the Electron build), NOT
-    mtime comparison. ``git checkout`` / ``git pull`` / ``hermes update``
+    mtime comparison. ``git checkout`` / ``git pull`` / ``vedant update``
     rewrite source mtimes without changing content, which made the old
     mtime check unreliable in both directions: it could skip a rebuild when
     source had genuinely changed (serving a stale dashboard) and force a
@@ -5264,7 +5264,7 @@ def _run_with_idle_timeout(
     WSL2 with the default 4 GB cap) the build can stall or sit silent for
     minutes; users see a frozen terminal, assume the update is hung, and
     reboot — leaving the editable install in a half-state with the
-    ``hermes`` launcher present but ``hermes_cli`` not importable.
+    ``vedant`` launcher present but ``hermes_cli`` not importable.
 
     This helper fixes both halves: stdout is streamed (so the user sees
     progress), and if no bytes have appeared on stdout/stderr for
@@ -5416,7 +5416,7 @@ def _run_npm_install_deterministic(
     falls back to ``npm install`` only if ``npm ci`` fails (e.g. lockfile out of
     sync on a WIP checkout).  Without this, ``npm install`` on npm ≥ 10 silently
     rewrites committed lockfiles (stripping ``"peer": true`` etc.), which leaves
-    the working tree dirty and causes the next ``hermes update`` to stash the
+    the working tree dirty and causes the next ``vedant update`` to stash the
     lockfile — repeatedly.
 
     ``--include=dev`` is forced on every invocation: the callers are frontend
@@ -5543,7 +5543,7 @@ def _do_build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
     Args:
         web_dir: Path to the dashboard frontend source directory.
         fatal: If True, print error guidance and return False on failure
-               instead of a soft warning (used by ``hermes web``).
+               instead of a soft warning (used by ``vedant web``).
 
     Returns True if the build succeeded or was skipped (no package.json).
     """
@@ -5692,9 +5692,9 @@ def _desktop_dist_exists(desktop_dir: Path) -> bool:
 # SHA-256 content hash of the source tree so that:
 #   - ``git checkout`` / ``git pull`` that touch mtimes but not content
 #     don't trigger a rebuild
-#   - ``hermes update`` can unconditionally call ``hermes desktop --build-only``
+#   - ``vedant update`` can unconditionally call ``vedant desktop --build-only``
 #     and it will skip if nothing actually changed
-#   - ``hermes desktop`` (interactive launch) skips the build when the
+#   - ``vedant desktop`` (interactive launch) skips the build when the
 #     stamp matches, making repeated launches fast
 #
 # Stamp file: $HERMES_HOME/desktop-build-stamp.json
@@ -5776,7 +5776,7 @@ def _desktop_build_needed(desktop_dir: Path, project_root: Path, *, source_mode:
 
     Compares the current content hash against the saved stamp. Also returns
     True if the expected build artifact doesn't exist (e.g. first run after
-    ``hermes update`` that pulled new source but hasn't built yet).
+    ``vedant update`` that pulled new source but hasn't built yet).
     """
     # If there's no build output at all, we definitely need to build
     if source_mode:
@@ -5864,7 +5864,7 @@ def _desktop_packaged_executable(desktop_dir: Path) -> Optional[Path]:
 # ─── Desktop exe integrity gate (#69179) ────────────────────────────────────
 #
 # The desktop self-update chain (Desktop → hermes-setup --update →
-# `hermes update` → `hermes desktop --build-only` → relaunch) rebuilds
+# `vedant update` → `vedant desktop --build-only` → relaunch) rebuilds
 # Hermes.exe on the end user's machine and used to verify only that the file
 # EXISTS before declaring success. A corrupt cached Electron zip whose
 # extraction produced a truncated electron.exe, an interrupted rcedit resource
@@ -6187,12 +6187,12 @@ def _ensure_desktop_exe_launchable(
     restored = _rollback_desktop_from_backup(packaged_executable)
     if restored is not None:
         print("  ↩ Update aborted — restored the previous working Hermes.exe from backup.")
-        print("    Your existing version was kept and still works. Run `hermes desktop`")
+        print("    Your existing version was kept and still works. Run `vedant desktop`")
         print("    (or the in-app update) again to retry with a fresh Electron download.")
         return restored, True
 
     print("  ✗ No usable backup was found to restore.")
-    print("    Run `hermes desktop --force-build` to rebuild, or re-run the Hermes")
+    print("    Run `vedant desktop --force-build` to rebuild, or re-run the Hermes")
     print("    installer to repair the install.")
     return None, False
 
@@ -6728,7 +6728,7 @@ def _force_adhoc_macos_signing(env: dict, *, source_mode: bool) -> bool:
     """Stop electron-builder grabbing a random keychain identity on self-update.
 
     The desktop self-updater rebuilds *and re-signs the .app on the end user's
-    machine* (``hermes desktop --build-only`` → electron-builder ``--dir``).
+    machine* (``vedant desktop --build-only`` → electron-builder ``--dir``).
     With ``CSC_IDENTITY_AUTO_DISCOVERY`` on (its default), electron-builder
     signs the ``type=distribution``, hardened-runtime bundle with whatever it
     finds in that user's keychain — typically a personal "Apple Development"
@@ -6899,7 +6899,7 @@ def cmd_gui(args: argparse.Namespace):
     # Desktop launch options from config.yaml (`desktop.electron_flags`,
     # `desktop.disable_gpu`). The GPU policy is bridged to the env var the
     # Electron app already reads; an explicit env var still wins over config so
-    # `HERMES_DESKTOP_DISABLE_GPU=... hermes desktop` keeps working.
+    # `HERMES_DESKTOP_DISABLE_GPU=... vedant desktop` keeps working.
     config_electron_flags, config_disable_gpu = _desktop_launch_options()
     if config_disable_gpu != "auto" and "HERMES_DESKTOP_DISABLE_GPU" not in os.environ:
         env["HERMES_DESKTOP_DISABLE_GPU"] = config_disable_gpu
@@ -6914,7 +6914,7 @@ def cmd_gui(args: argparse.Namespace):
         npm = _resolve_node_runtime_npm()
         if not npm:
             print("Desktop GUI requires Node.js/npm, but npm was not found on PATH.")
-            print("Install Node.js, then run:  hermes gui")
+            print("Install Node.js, then run:  vedant gui")
             sys.exit(1)
     else:
         npm = None
@@ -6956,9 +6956,9 @@ def cmd_gui(args: argparse.Namespace):
             # shell out to bare `node`, e.g. electron-winstaller's
             # select-7z-arch.js) resolve it even when the parent PATH is
             # stripped — the desktop updater chain (Desktop → hermes-setup →
-            # hermes update) loses shell PATH customizations. Wrapping the
+            # vedant update) loses shell PATH customizations. Wrapping the
             # NixOS build env keeps its PYTHON hint while restoring managed Node
-            # ahead of a bare PATH (same idiom as the `hermes update` path).
+            # ahead of a bare PATH (same idiom as the `vedant update` path).
             nixos_env = with_hermes_node_path(_nixos_build_env())
             install_result = _run_npm_install_deterministic(npm, PROJECT_ROOT, capture_output=False, env=nixos_env)
             if install_result.returncode != 0:
@@ -7041,7 +7041,7 @@ def cmd_gui(args: argparse.Namespace):
                     print("  If this says \"Access is denied\" on Hermes.exe, close any")
                     print("  running Hermes desktop window and retry.")
                 print("  If the log shows Electron download retries, rebuild via a mirror:")
-                print("    ELECTRON_MIRROR=<mirror-base-url> hermes desktop --force-build")
+                print("    ELECTRON_MIRROR=<mirror-base-url> vedant desktop --force-build")
                 sys.exit(build_result.returncode or 1)
             packaged_executable = _desktop_packaged_executable(desktop_dir)
             if not source_mode:
@@ -7136,7 +7136,7 @@ def _parse_dashboard_runtime(command: str) -> tuple[str, str, int] | None:
     if any(
         pattern in command
         for pattern in (
-            "hermes dashboard",
+            "vedant dashboard",
             "hermes_cli.main dashboard",
             "hermes_cli/main.py dashboard",
         )
@@ -7145,7 +7145,7 @@ def _parse_dashboard_runtime(command: str) -> tuple[str, str, int] | None:
     elif any(
         pattern in command
         for pattern in (
-            "hermes serve",
+            "vedant serve",
             "hermes_cli.main serve",
             "hermes_cli/main.py serve",
         )
@@ -7441,7 +7441,7 @@ def _dashboard_cmdline_for_pid(pid: int) -> list[str] | None:
 
 
 def _respawn_dashboard_processes(commands: list[list[str]]) -> list[list[str]]:
-    """Best-effort respawn of manually-started dashboards after ``hermes update``.
+    """Best-effort respawn of manually-started dashboards after ``vedant update``.
 
     Spawns each recovered argv detached (new session, output to the profile's
     ``logs/dashboard-restart.log``).  Returns the commands that failed to
@@ -7489,7 +7489,7 @@ _warn_stale_dashboard_processes = _kill_stale_dashboard_processes
 
 
 # =========================================================================
-# Fork detection and upstream management for `hermes update`
+# Fork detection and upstream management for `vedant update`
 # =========================================================================
 
 
@@ -7577,7 +7577,7 @@ def _clear_lazy_refresh_incomplete_marker() -> None:
 
 
 def _recover_from_interrupted_install() -> None:
-    """Finish update work left half-done by a prior ``hermes update``.
+    """Finish update work left half-done by a prior ``vedant update``.
 
     Handles two independent breadcrumbs:
 
@@ -7599,7 +7599,7 @@ def _recover_from_interrupted_install() -> None:
 
     Output: everything — our status lines AND the streamed pip/uv install
     (which inherits fd 1) — is routed to stderr.  Launches whose stdout is a
-    protocol stream (``hermes acp`` speaks JSON-RPC on stdout) must never get
+    protocol stream (``vedant acp`` speaks JSON-RPC on stdout) must never get
     install noise on stdout.
     """
     if _pytest_owns_live_checkout(PROJECT_ROOT):
@@ -7710,7 +7710,7 @@ def _recover_core_update_marker_locked() -> None:
     would otherwise look healthy and clear the breadcrumb too early.
     """
     print(
-        "⚠ A previous `hermes update` was interrupted mid-install — "
+        "⚠ A previous `vedant update` was interrupted mid-install — "
         "finishing dependency installation now..."
     )
 
@@ -7846,7 +7846,7 @@ def _run_install_with_heartbeat(
 
     Some resolvers/build backends (especially when compiling Rust/C extensions)
     can stay quiet for minutes. Emit a simple elapsed-time heartbeat so users
-    know ``hermes update`` is still progressing even if pip/uv itself is silent.
+    know ``vedant update`` is still progressing even if pip/uv itself is silent.
     """
     done = threading.Event()
     start = _time.time()
@@ -7913,7 +7913,7 @@ def _quarantine_running_hermes_exe(
     Windows allows RENAMING a mapped/running executable (the kernel tracks the
     file by handle, not path), but blocks DELETE/REPLACE while it's loaded. uv
     needs to overwrite the entry-point shims during ``pip install -e .``;
-    when ``hermes update`` runs, ``hermes.exe`` IS the live process, and uv
+    when ``vedant update`` runs, ``hermes.exe`` IS the live process, and uv
     fails with ``Access is denied. (os error 5)``.
 
     We rename live shims to ``hermes.exe.old.<unix-ms>`` first. uv then writes
@@ -8001,8 +8001,8 @@ def _quarantine_running_hermes_exe(
             f"another process is holding it open)."
         )
         print(
-            "    Close Hermes Desktop, exit other `hermes` REPLs, stop the "
-            "gateway, or pause AV scanning, then re-run `hermes update`."
+            "    Close Hermes Desktop, exit other `vedant` REPLs, stop the "
+            "gateway, or pause AV scanning, then re-run `vedant update`."
         )
 
     return moved
@@ -8064,7 +8064,7 @@ def _run_quarantined_install(
     Any ``pip install -e .`` (or ``--reinstall``) rewrites the entry-point
     shims, and on Windows the live ``hermes.exe`` is the running process —
     pip can neither delete nor overwrite it, so without quarantine the shim
-    is left missing and ``hermes`` drops off PATH. This wraps
+    is left missing and ``vedant`` drops off PATH. This wraps
     :func:`_run_install_with_heartbeat` with the same rename-out-of-the-way /
     restore-on-failure dance that the primary install path uses, so EVERY
     install that touches the shims is protected — including the
@@ -8319,7 +8319,7 @@ def _repair_venv_via_import_probes(
     manual = " ".join(
         shlex.quote(s) for s in _lazy_refresh_repair_specs(broken)
     )
-    print("  ⚠ Venv repair incomplete. Run manually, then `hermes update`:")
+    print("  ⚠ Venv repair incomplete. Run manually, then `vedant update`:")
     print(
         f"    {' '.join(install_cmd_prefix)} install --force-reinstall {manual}"
     )
@@ -8384,7 +8384,7 @@ def _install_python_dependencies_with_optional_fallback(
     # partial installs where a newly added base dep (e.g. ``pathspec``)
     # silently fails to land on top of a half-stale venv, and the only
     # symptom is a downstream subprocess crashing with ModuleNotFoundError
-    # hours later inside ``hermes update``'s desktop-rebuild or skill-sync
+    # hours later inside ``vedant update``'s desktop-rebuild or skill-sync
     # stage. Reinstall with --reinstall to force resolution if anything is
     # missing, then re-verify so the failure surfaces here instead of
     # downstream.
@@ -8422,9 +8422,9 @@ def _verify_console_scripts_installed(
 
     On Windows, ``uv pip install -e .`` can register ``hermes.exe`` in the
     wheel RECORD while the file never lands on disk — typically when the live
-    ``hermes.exe`` shim is locked during ``hermes update``, or when uv/distlib
+    ``hermes.exe`` shim is locked during ``vedant update``, or when uv/distlib
     skips a launcher write. The symptom is ``hermes-agent.exe`` and
-    ``hermes-acp.exe`` present but ``hermes.exe`` missing, so ``hermes`` drops
+    ``hermes-acp.exe`` present but ``hermes.exe`` missing, so ``vedant`` drops
     off PATH even though the install reported success (issue #52931).
 
     If any shim is missing we reinstall with ``--reinstall -e .`` under the
@@ -8467,7 +8467,7 @@ def _verify_console_scripts_installed(
     except subprocess.CalledProcessError as e:
         logger.warning("console script verification: repair install failed: %s", e)
         print(
-            "  ⚠ Entry point repair failed; try `hermes update --force` after "
+            "  ⚠ Entry point repair failed; try `vedant update --force` after "
             "closing other hermes processes."
         )
         return
@@ -8560,7 +8560,7 @@ def _verify_core_dependencies_installed(
         return
 
     # Run the check inside the venv Python — sys.executable here may be the
-    # outer Python that drove ``hermes update``, not the venv we just wrote
+    # outer Python that drove ``vedant update``, not the venv we just wrote
     # to. The uv install_cmd_prefix encodes which environment we targeted
     # (either ``[uv, pip]`` with VIRTUAL_ENV in env, or
     # ``[sys.executable, -m, pip]`` for the in-process Python); resolve the
@@ -8609,7 +8609,7 @@ def _verify_core_dependencies_installed(
     #
     # Quarantine the running ``hermes.exe`` first: ``--reinstall -e .``
     # rewrites the entry-point shims, and on Windows pip can't overwrite the
-    # live launcher, which would leave ``hermes`` off PATH.
+    # live launcher, which would leave ``vedant`` off PATH.
     scripts_dir = _venv_scripts_dir() if _is_windows() else None
     repair_args = ["install", "--reinstall", "-e", "."]
     try:
@@ -8618,7 +8618,7 @@ def _verify_core_dependencies_installed(
         )
     except subprocess.CalledProcessError as e:
         logger.warning("dep verification: repair install failed: %s", e)
-        print("  ⚠ Repair install failed; check `hermes update` output above.")
+        print("  ⚠ Repair install failed; check `vedant update` output above.")
         return
 
     still_missing = _missing_deps()
@@ -8651,7 +8651,7 @@ def _verify_core_dependencies_installed(
         logger.warning("dep verification: per-package repair failed: %s", e)
         print(
             f"  ⚠ Could not install: {', '.join(still_missing)}. "
-            "Run `hermes update --force` after closing other hermes processes."
+            "Run `vedant update --force` after closing other hermes processes."
         )
         return
 
@@ -8659,7 +8659,7 @@ def _verify_core_dependencies_installed(
     if final_missing:
         print(
             f"  ⚠ Still missing after repair: {', '.join(final_missing)}. "
-            "Run `hermes update --force` after closing other hermes processes."
+            "Run `vedant update --force` after closing other hermes processes."
         )
     else:
         print("  ✓ All declared core dependencies now installed")
@@ -8755,12 +8755,12 @@ def _resolve_node_runtime_npm() -> str | None:
 
 
 class _UpdateOutputStream:
-    """Stream wrapper used during ``hermes update`` to survive terminal loss.
+    """Stream wrapper used during ``vedant update`` to survive terminal loss.
 
     Wraps the process's original stdout/stderr so that:
 
     * Every write is also mirrored to an append-only log file
-      (``~/.hermes/logs/update.log``) that users can inspect after the
+      (``~/.localstreet/logs/update.log``) that users can inspect after the
       terminal disconnects.
     * Writes to the original stream that fail with ``BrokenPipeError`` /
       ``OSError`` / ``ValueError`` (closed file) no longer cascade into
@@ -8768,7 +8768,7 @@ class _UpdateOutputStream:
       stops.
 
     Combined with ``SIGHUP -> SIG_IGN`` installed by
-    ``_install_hangup_protection``, this makes ``hermes update`` safe to
+    ``_install_hangup_protection``, this makes ``vedant update`` safe to
     run in a plain SSH session that might disconnect mid-install.
     """
 
@@ -8830,7 +8830,7 @@ class _UpdateOutputStream:
 def _install_hangup_protection(gateway_mode: bool = False):
     """Protect ``cmd_update`` from SIGHUP and broken terminal pipes.
 
-    Users commonly run ``hermes update`` in an SSH session or a terminal
+    Users commonly run ``vedant update`` in an SSH session or a terminal
     that may close mid-install.  Without protection, ``SIGHUP`` from the
     terminal kills the Python process during ``pip install`` and leaves
     the venv half-installed; the documented workaround ("use screen /
@@ -8842,14 +8842,14 @@ def _install_hangup_protection(gateway_mode: bool = False):
        across ``exec()``, so pip and git subprocesses also stop dying on
        hangup.
     2. ``sys.stdout`` / ``sys.stderr`` are wrapped to mirror output to
-       ``~/.hermes/logs/update.log`` and to silently absorb
+       ``~/.localstreet/logs/update.log`` and to silently absorb
        ``BrokenPipeError`` when the terminal vanishes.
 
     ``SIGINT`` (Ctrl-C) and ``SIGTERM`` (systemd shutdown) are
     **intentionally left alone** — those are legitimate cancellation
     signals the user or OS sent on purpose.
 
-    In gateway mode (``hermes update --gateway``) the update is already
+    In gateway mode (``vedant update --gateway``) the update is already
     spawned detached from a terminal, so this function is a no-op.
 
     Returns a dict that ``cmd_update`` can pass to
@@ -8892,7 +8892,7 @@ def _install_hangup_protection(gateway_mode: bool = False):
         import datetime as _dt
 
         log_file.write(
-            f"\n=== hermes update started "
+            f"\n=== vedant update started "
             f"{_dt.datetime.now().isoformat(timespec='seconds')} ===\n"
         )
 
@@ -8955,7 +8955,7 @@ def _size_delta_label(saved_mb: float) -> str:
 
 
 def cmd_update(args):
-    """Update Hermes Agent to the latest version.
+    """Update Vedant to the latest version.
 
     Thin wrapper around ``_cmd_update_impl``: installs hangup protection,
     runs the update, then restores stdio on the way out (even on
@@ -8970,7 +8970,7 @@ def cmd_update(args):
     )
 
     if is_managed():
-        managed_error("update Hermes Agent")
+        managed_error("update Vedant")
         return
 
     # Docker users can't ``git pull`` — the image excludes ``.git`` from
@@ -8990,7 +8990,7 @@ def cmd_update(args):
 
     if getattr(args, "check", False):
         # --check honors --branch so the "any new commits?" answer matches
-        # what a subsequent `hermes update --branch=<x>` would actually pull.
+        # what a subsequent `vedant update --branch=<x>` would actually pull.
         branch = _resolve_update_branch(args)
         _cmd_update_check(
             branch=branch,
@@ -9032,7 +9032,7 @@ def cmd_update(args):
 def _coalesce_session_name_args(argv: list) -> list:
     """Join unquoted multi-word session names after -c/--continue and -r/--resume.
 
-    When a user types ``hermes -c Pokemon Agent Dev`` without quoting the
+    When a user types ``vedant -c Pokemon Agent Dev`` without quoting the
     session name, argparse sees three separate tokens.  This function merges
     them into a single argument so argparse receives
     ``['-c', 'Pokemon Agent Dev']`` instead.
@@ -9128,7 +9128,7 @@ def cmd_profile(args):
     action = getattr(args, "profile_action", None)
 
     if action is None:
-        # Bare `hermes profile` — show current profile status
+        # Bare `vedant profile` — show current profile status
         profile_name = get_active_profile_name()
         dhh = display_hermes_home()
         print(f"\nActive profile: {profile_name}")
@@ -9148,7 +9148,7 @@ def cmd_profile(args):
                 print(f"Skills:         {p.skill_count} installed")
                 if p.alias_path:
                     alias_display = p.alias_name or p.name
-                    print(f"Alias:          {alias_display} → hermes -p {p.name}")
+                    print(f"Alias:          {alias_display} → vedant -p {p.name}")
                 break
         print()
         return
@@ -9196,7 +9196,7 @@ def cmd_profile(args):
         try:
             set_active_profile(name)
             if name == "default":
-                print("Switched to: default (~/.hermes)")
+                print("Switched to: default (~/.localstreet)")
             else:
                 print(f"Switched to: {name}")
         except (ValueError, FileNotFoundError) as e:
@@ -9275,9 +9275,9 @@ def cmd_profile(args):
                 if collision:
                     print(f"\n⚠ Cannot create alias '{name}' — {collision}")
                     print(
-                        f"  Choose a custom alias:  hermes profile alias {name} --name <custom>"
+                        f"  Choose a custom alias:  vedant profile alias {name} --name <custom>"
                     )
-                    print(f"  Or access via flag:     hermes -p {name} chat")
+                    print(f"  Or access via flag:     vedant -p {name} chat")
                 else:
                     wrapper_path = create_wrapper_script(name)
                     if wrapper_path:
@@ -9464,11 +9464,11 @@ def cmd_profile(args):
             print(f"Distribution: {dist_name}@{dist_version or '?'}")
             if dist_source:
                 print(f"Installed from: {dist_source}")
-            print(f"  (run `hermes profile info {name}` for full manifest)")
+            print(f"  (run `vedant profile info {name}` for full manifest)")
         if alias_name:
             is_windows = sys.platform == "win32"
             wrapper = _get_wrapper_dir() / (f"{alias_name}.bat" if is_windows else alias_name)
-            print(f"Alias:   {alias_name} → hermes -p {name}  ({wrapper})")
+            print(f"Alias:   {alias_name} → vedant -p {name}  ({wrapper})")
         print()
 
     elif action == "alias":
@@ -9597,9 +9597,9 @@ def cmd_profile(args):
             if plan.has_cron:
                 print(
                     "  Cron jobs were included but are NOT scheduled automatically.\n"
-                    f"  Review them with:  hermes -p {plan.manifest.name} cron list"
+                    f"  Review them with:  vedant -p {plan.manifest.name} cron list"
                 )
-            print(f"\n  Use with:      hermes -p {plan.manifest.name} chat")
+            print(f"\n  Use with:      vedant -p {plan.manifest.name} chat")
         except (DistributionError, ValueError) as e:
             print(f"Error: {e}")
             sys.exit(1)
@@ -9619,7 +9619,7 @@ def cmd_profile(args):
             if current is None:
                 print(
                     f"Error: Profile '{canon}' is not a distribution (no distribution.yaml). "
-                    "Only profiles installed via `hermes profile install` can be updated."
+                    "Only profiles installed via `vedant profile install` can be updated."
                 )
                 sys.exit(1)
 
@@ -9645,7 +9645,7 @@ def cmd_profile(args):
             if plan.has_cron:
                 print(
                     "  Cron files were refreshed.  Review with:  "
-                    f"hermes -p {plan.manifest.name} cron list"
+                    f"vedant -p {plan.manifest.name} cron list"
                 )
         except (DistributionError, ValueError) as e:
             print(f"Error: {e}")
@@ -9674,7 +9674,7 @@ def cmd_profile(args):
         if data.get("license"):
             print(f"License:      {data['license']}")
         if data.get("hermes_requires"):
-            print(f"Requires:     Hermes {data['hermes_requires']}")
+            print(f"Requires:     Vedant {data['hermes_requires']}")
         if data.get("source"):
             print(f"Source:       {data['source']}")
         if data.get("installed_at"):
@@ -9703,7 +9703,7 @@ def _render_distribution_plan(plan) -> None:
     if mf.author:
         print(f"  Author:   {mf.author}")
     if mf.hermes_requires:
-        print(f"  Requires: Hermes {mf.hermes_requires}")
+        print(f"  Requires: Vedant {mf.hermes_requires}")
     print(f"  Source:   {plan.provenance}")
     print(f"  Target:   {plan.target_dir}")
     if plan.existing:
@@ -9781,10 +9781,10 @@ def _report_dashboard_status() -> int:
         live.append((pid, command))
 
     if not live:
-        print("No hermes dashboard processes running.")
+        print("No vedant dashboard processes running.")
         return 0
 
-    print(f"{len(live)} hermes dashboard process(es) running:")
+    print(f"{len(live)} vedant dashboard process(es) running:")
     for pid, command in live:
         print(f"    PID {pid}: {command}")
     return len(live)
@@ -9814,7 +9814,7 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
     ``DashboardAuthProvider`` is registered. Rather than greet an interactive
     operator with that hard error, prompt them to set up the bundled
     username/password provider on the spot — or point them at
-    ``hermes dashboard register`` for OAuth.
+    ``vedant dashboard register`` for OAuth.
 
     No-ops (so the existing fail-closed ``SystemExit`` remains the backstop)
     when:
@@ -9855,7 +9855,7 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
     print()
     print("  How do you want to authenticate the dashboard?")
     print("    [1] Username & password (quickest; for a trusted LAN / VPN)")
-    print("    [2] OAuth via Nous Portal (run `hermes dashboard register`)")
+    print("    [2] OAuth via account portal (run `vedant dashboard register`)")
     print("    [3] Cancel")
     print()
 
@@ -9870,11 +9870,9 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
         print(
             "  Run this on the host where the dashboard lives, then start "
             "the dashboard again:\n"
-            "    hermes dashboard register\n"
-            "  It provisions a Nous Portal OAuth client and writes "
-            "HERMES_DASHBOARD_OAUTH_CLIENT_ID into ~/.hermes/.env for you.\n"
-            "  Docs: https://hermes-agent.nousresearch.com/docs/"
-            "user-guide/features/web-dashboard#authentication-gated-mode"
+            "    vedant dashboard register\n"
+            "  It provisions an OAuth client and writes "
+            "credentials into ~/.localstreet/.env for you."
         )
         sys.exit(0)
 
@@ -10044,7 +10042,7 @@ def _is_electron_packaged_web_dist(path: str) -> bool:
     """True when *path* looks like an Electron-packaged renderer dist.
 
     Packaged Desktop sets ``HERMES_WEB_DIST`` to ``.../app.asar/dist`` or
-    ``.../app.asar.unpacked/dist``. A standalone ``hermes dashboard`` that
+    ``.../app.asar.unpacked/dist``. A standalone ``vedant dashboard`` that
     inherits that value serves the desktop frontend in the browser
     (issue #52945 — "Desktop IPC bridge is unavailable").
     """
@@ -10072,9 +10070,9 @@ def cmd_dashboard(args):
     if getattr(args, "stop", False):
         pids = _find_stale_dashboard_pids()
         if not pids:
-            print("No hermes dashboard processes running.")
+            print("No vedant dashboard processes running.")
             sys.exit(0)
-        # Reuse the same SIGTERM-grace-SIGKILL path used after `hermes update`.
+        # Reuse the same SIGTERM-grace-SIGKILL path used after `vedant update`.
         _kill_stale_dashboard_processes(reason="requested via --stop")
         # _kill_stale_dashboard_processes prints outcomes itself.  Exit 0 if
         # we killed at least one, 1 if they were all unkillable.
@@ -10096,7 +10094,7 @@ def cmd_dashboard(args):
     # Desktop Electron spawns its backend with HERMES_DESKTOP=1 plus
     # HERMES_WEB_DIST=<packaged app.asar[/unpacked]/dist> (and often
     # HERMES_SERVE_HEADLESS=1 on the serve path). A shell that inherits
-    # those vars then runs `hermes dashboard` would otherwise:
+    # those vars then runs `vedant dashboard` would otherwise:
     #   - serve the desktop renderer → "Desktop IPC bridge is unavailable"
     #     (issue #52945), or
     #   - disable the SPA via inherited HERMES_SERVE_HEADLESS.
@@ -10185,7 +10183,7 @@ def cmd_dashboard(args):
         # empty, auto-seeded home where the dashboard sees only the default
         # profile and the install-method stamp is missing (so the Docker
         # update-button guard also misfires).  get_default_hermes_root()
-        # returns the root for both layouts: ~/.hermes for a standard install
+        # returns the root for both layouts: ~/.localstreet for a standard install
         # and /opt/data for Docker (it strips a trailing profiles/<name>).
         # See the support report for the double-mount workaround this avoids.
         try:
@@ -10479,7 +10477,7 @@ _BUILTIN_SUBCOMMANDS = frozenset(
 
 
 # Top-level flags that take a value. Needed by ``_first_positional_argv``
-# so that in ``hermes -m gpt5 chat``, ``gpt5`` is correctly skipped as a
+# so that in ``vedant -m gpt5 chat``, ``gpt5`` is correctly skipped as a
 # flag value rather than misclassified as a subcommand. Kept in sync with
 # the top-level flags declared in ``hermes_cli/_parser.py``.
 #
@@ -10509,7 +10507,7 @@ def _first_positional_argv() -> str | None:
 
     Used by ``main()`` to decide whether plugin discovery has to run at
     argparse-setup time. Handles common invocations like
-    ``hermes -m gpt5 --provider openai chat "msg"`` by skipping the
+    ``vedant -m gpt5 --provider openai chat "msg"`` by skipping the
     values attached to known top-level flags.
 
     Does NOT fully simulate argparse — unknown ``--foo=bar`` / ``--foo
@@ -10548,7 +10546,7 @@ def _plugin_cli_discovery_needed() -> bool:
     """
     first = _first_positional_argv()
     if first is None:
-        # Bare ``hermes`` or only flags → defaults to ``chat``.
+        # Bare ``vedant`` or only flags → defaults to ``chat``.
         return False
     if first in _BUILTIN_SUBCOMMANDS:
         return False
@@ -10569,7 +10567,7 @@ def _resolve_deferred_platform_cli_command(command_name: str | None) -> None:
     ``ctx.register_cli_command(name="photon", ...)``) only runs that side
     effect when its module is imported. On the unknown-top-level-command slow
     path, ``discover_plugins()`` records the deferred loader but does not
-    import it, so the CLI registration never happens and ``hermes photon``
+    import it, so the CLI registration never happens and ``vedant photon``
     fails with argparse ``invalid choice`` (issue #54678).
 
     Resolving only the platform whose name matches the first positional token
@@ -10791,7 +10789,7 @@ def _try_termux_fast_cli_launch() -> bool:
 def _try_termux_fast_tui_launch() -> bool:
     """Launch obvious Termux TUI invocations before building every subparser.
 
-    `hermes --tui` is the hot path on phones. The full parser setup imports
+    `vedant --tui` is the hot path on phones. The full parser setup imports
     command modules for model, fallback, migrate, kanban, bundles, plugins,
     etc. even though the TUI immediately execs Node. On Termux only, parse the
     lightweight top-level/chat parser and hand off to ``cmd_chat`` when the
@@ -10893,7 +10891,7 @@ def cmd_memory(args):
 
 
 def cmd_acp(args):
-    """Launch Hermes Agent as an ACP server."""
+    """Launch Vedant as an ACP server."""
     try:
         from acp_adapter.entry import main as acp_main
 
@@ -11042,28 +11040,28 @@ def main():
         pass
 
     # Sweep stale ``hermes.exe.old.*`` quarantine files left by previous
-    # ``hermes update`` runs on Windows. Silent no-op on non-Windows or when
+    # ``vedant update`` runs on Windows. Silent no-op on non-Windows or when
     # there's nothing to clean. See ``_quarantine_running_hermes_exe``.
     try:
         _cleanup_quarantined_exes()
     except Exception:
         pass
 
-    # If the checkout changed since the last launch (hermes update, manual
+    # If the checkout changed since the last launch (vedant update, manual
     # git pull, old-updater update that predates newer clears), sweep stale
     # __pycache__ once so no process — this one's lazy imports included —
     # resolves fresh source against old bytecode. Never raises.
     _sweep_stale_bytecode_if_checkout_changed()
 
-    # Self-heal a venv left half-built by an interrupted ``hermes update``
+    # Self-heal a venv left half-built by an interrupted ``vedant update``
     # (Ctrl-C, terminal close, WSL OOM mid-install). Skip when the user is
     # *running* update — that flow writes and clears its own marker, and we
     # don't want a recovery install racing the real one. Never raises.
     #
     # The substring match is deliberately loose: argv isn't parsed yet at this
     # point, and the failure modes are asymmetric. Over-matching (e.g.
-    # ``hermes skills install update``) merely defers recovery one launch;
-    # under-matching (missing ``hermes -p work update``) would race a recovery
+    # ``vedant skills install update``) merely defers recovery one launch;
+    # under-matching (missing ``vedant -p work update``) would race a recovery
     # install against the real one. Loose wins.
     try:
         if "update" not in sys.argv[1:]:
@@ -11113,7 +11111,7 @@ def main():
             "Manage the fallback provider chain.  Fallback providers are tried "
             "in order when the primary model fails with rate-limit, overload, or "
             "connection errors.  See: "
-            "https://hermes-agent.nousresearch.com/docs/user-guide/features/fallback-providers"
+            "user-guide/features/fallback-providers"
         ),
     )
     fallback_subparsers = fallback_parser.add_subparsers(dest="fallback_command")
@@ -11124,7 +11122,7 @@ def main():
     )
     fallback_subparsers.add_parser(
         "add",
-        help="Pick a provider + model (same picker as `hermes model`) and append to the chain",
+        help="Pick a provider + model (same picker as `vedant model`) and append to the chain",
     )
     fallback_subparsers.add_parser(
         "remove",
@@ -11145,9 +11143,9 @@ def main():
         help="Manage external secret sources (Bitwarden, 1Password)",
         description=(
             "Pull API keys from an external secret manager at process startup "
-            "instead of storing them in ~/.hermes/.env.  Supports Bitwarden "
+            "instead of storing them in ~/.localstreet/.env.  Supports Bitwarden "
             "Secrets Manager and 1Password.  See: "
-            "https://hermes-agent.nousresearch.com/docs/user-guide/secrets/"
+            "user-guide/secrets/"
         ),
     )
     secrets_subparsers = secrets_parser.add_subparsers(dest="secrets_command")
@@ -11188,7 +11186,7 @@ def main():
     # egress command — iron-proxy outbound credential-injection firewall
     # =========================================================================
     # NOTE: this is the OUTBOUND egress firewall (ironsh/iron-proxy).
-    # `hermes proxy` (defined elsewhere in this file) is a separate INBOUND
+    # `vedant proxy` (defined elsewhere in this file) is a separate INBOUND
     # OAuth-aggregator reverse proxy.  Different direction, different purpose.
     egress_parser = subparsers.add_parser(
         "egress",
@@ -11197,7 +11195,7 @@ def main():
             "Manage iron-proxy, the optional TLS-intercepting egress firewall "
             "that swaps proxy tokens for real API credentials before outbound "
             "requests leave a sandbox.  Disabled by default.  See: "
-            "https://hermes-agent.nousresearch.com/docs/user-guide/egress/iron-proxy"
+            "user-guide/egress/iron-proxy"
         ),
     )
 
@@ -11206,7 +11204,7 @@ def main():
 
     def _dispatch_egress(args):  # noqa: ANN001
         # The egress subparser uses dest='egress_command' to stay disjoint
-        # from the inbound OAuth ``hermes proxy`` subparser (dest='proxy_command').
+        # from the inbound OAuth ``vedant proxy`` subparser (dest='proxy_command').
         sub = getattr(args, "egress_command", None)
         if sub is not None and hasattr(args, "func") and args.func is not _dispatch_egress:
             return args.func(args)
@@ -11291,7 +11289,7 @@ def main():
         description=(
             "Configure the official Meta WhatsApp Business Cloud API "
             "adapter (Business account required, public webhook URL "
-            "required). Distinct from `hermes whatsapp` which sets up "
+            "required). Distinct from `vedant whatsapp` which sets up "
             "the Baileys bridge for personal accounts."
         ),
     )
@@ -11405,7 +11403,7 @@ def main():
     # =========================================================================
     checkpoints_parser = subparsers.add_parser(
         "checkpoints",
-        help="Inspect / prune / clear ~/.hermes/checkpoints/",
+        help="Inspect / prune / clear ~/.localstreet/checkpoints/",
         description="Manage the filesystem checkpoint store — the shadow git "
         "repo hermes uses to snapshot working directories before "
         "write_file/patch/terminal calls. Lets you see how much "
@@ -11480,7 +11478,7 @@ def main():
     # own argparse tree.  No hardcoded plugin commands in main.py.
     #
     # Skipped when the invocation is already targeting a known built-in
-    # subcommand — ``hermes --help``, ``hermes version``, ``hermes logs``,
+    # subcommand — ``vedant --help``, ``vedant version``, ``vedant logs``,
     # etc.  This avoids eagerly importing every bundled plugin module
     # (google.cloud.pubsub_v1, aiohttp, grpc, PIL …) which costs
     # 500-650ms on typical installs.
@@ -11606,13 +11604,13 @@ def main():
             "Install or check the cua-driver binary used by the\n"
             "`computer_use` toolset. Supported on macOS, Windows, and\n"
             "Linux.\n\n"
-            "Use `hermes computer-use install` to fetch and run the\n"
+            "Use `vedant computer-use install` to fetch and run the\n"
             "upstream cua-driver installer. This is equivalent to the\n"
-            "post-setup hook that `hermes tools` runs when you first\n"
+            "post-setup hook that `vedant tools` runs when you first\n"
             "enable the Computer Use toolset, and is a stable target\n"
             "for re-running the install if it didn't fire (e.g. when\n"
             "toggling the toolset on a returning-user setup).\n\n"
-            "Use `hermes computer-use doctor` to run cua-driver's\n"
+            "Use `vedant computer-use doctor` to run cua-driver's\n"
             "`health_report` MCP tool and surface its check matrix\n"
             "(TCC, bundle identity, version, platform support, ...)\n"
             "in human-readable form."
@@ -12257,7 +12255,7 @@ def main():
     #
     # The canonical name is "desktop"; "gui" is kept as a deprecated alias
     # for one release. The Hermes-Setup.exe success screen tells users to
-    # run `hermes desktop` from a terminal, so the canonical name needs
+    # run `vedant desktop` from a terminal, so the canonical name needs
     # to be the one that appears in --help (argparse promotes the primary
     # name; aliases stay hidden).
     # =========================================================================
@@ -12280,7 +12278,7 @@ def main():
     # =========================================================================
     # Pre-process argv so unquoted multi-word session names after -c / -r
     # are merged into a single token before argparse sees them.
-    # e.g. ``hermes -c Pokemon Agent Dev`` → ``hermes -c 'Pokemon Agent Dev'``
+    # e.g. ``vedant -c Pokemon Agent Dev`` → ``vedant -c 'Pokemon Agent Dev'``
     # ── Container-aware routing ────────────────────────────────────────
     # When NixOS container mode is active, route ALL subcommands into
     # the managed container.  This MUST run before parse_args() so that
@@ -12305,7 +12303,7 @@ def main():
     #
     # Fix: when argv contains a token matching a known subcommand, set
     # subparsers.required=True to force deterministic routing.  If that
-    # fails (e.g. 'hermes -c model' where 'model' is consumed as the
+    # fails (e.g. 'vedant -c model' where 'model' is consumed as the
     # session name for --continue), fall back to the default behaviour.
     import io as _io
 
@@ -12405,7 +12403,7 @@ def main():
 
     # Execute the command.  Propagate the handler's return code as the
     # process exit code so subcommands that signal failure (e.g.
-    # ``hermes egress start`` refusing when credential_source=bitwarden
+    # ``vedant egress start`` refusing when credential_source=bitwarden
     # is misconfigured) actually exit non-zero.  Handlers that return
     # None are treated as success (exit 0).
     if hasattr(args, "func"):

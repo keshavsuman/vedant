@@ -2059,19 +2059,14 @@ LEGACY_AUTHOR_MAP = {
 }
 
 
-# ──────────────────────────────────────────────────────────────────────
-# Directory-based mappings: contributors/emails/<email> → login
-# ──────────────────────────────────────────────────────────────────────
+# Directory-based mappings were under contributors/emails/ (removed in the
+# Vedant white-label). _load_contributor_dir() is a no-op when the directory
+# is absent; AUTHOR_MAP falls back to LEGACY_AUTHOR_MAP only.
 CONTRIBUTORS_EMAILS_DIR = REPO_ROOT / "contributors" / "emails"
 
 
 def _load_contributor_dir(directory: "Path | None" = None) -> dict:
-    """Load one-file-per-email mappings from contributors/emails/.
-
-    Filename = commit-author email, first non-comment line = GitHub login.
-    Additions never merge-conflict (each mapping is a distinct file), which
-    is why new entries go here instead of the frozen LEGACY_AUTHOR_MAP.
-    """
+    """Load one-file-per-email mappings from contributors/emails/ if present."""
     directory = directory or CONTRIBUTORS_EMAILS_DIR
     mapping = {}
     if not directory.is_dir():

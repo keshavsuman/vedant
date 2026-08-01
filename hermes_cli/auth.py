@@ -1,9 +1,9 @@
 """
-Multi-provider authentication system for Hermes Agent.
+Multi-provider authentication system for Vedant.
 
 Supports OAuth device code flows (Nous Portal, future: OpenAI Codex) and
 traditional API key providers (OpenRouter, custom endpoints). Auth state
-is persisted in ~/.hermes/auth.json with cross-process file locking.
+is persisted in ~/.localstreet/auth.json with cross-process file locking.
 
 Architecture:
 - ProviderConfig registry defines known OAuth providers
@@ -124,11 +124,11 @@ QWEN_ACCESS_TOKEN_REFRESH_SKEW_SECONDS = 120
 DEFAULT_SPOTIFY_ACCOUNTS_BASE_URL = "https://accounts.spotify.com"
 DEFAULT_SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1"
 DEFAULT_SPOTIFY_REDIRECT_URI = "http://127.0.0.1:43827/spotify/callback"
-SPOTIFY_DOCS_URL = "https://hermes-agent.nousresearch.com/docs/user-guide/features/spotify"
+SPOTIFY_DOCS_URL = ""
 SPOTIFY_DASHBOARD_URL = "https://developer.spotify.com/dashboard"
 SPOTIFY_ACCESS_TOKEN_REFRESH_SKEW_SECONDS = 120
 
-OAUTH_OVER_SSH_DOCS_URL = "https://hermes-agent.nousresearch.com/docs/guides/oauth-over-ssh"
+OAUTH_OVER_SSH_DOCS_URL = ""
 DEFAULT_SPOTIFY_SCOPE = " ".join((
     "user-modify-playback-state",
     "user-read-playback-state",
@@ -506,7 +506,7 @@ def get_anthropic_key() -> str:
     """Return the first usable Anthropic credential, or ``""``.
 
     Checks both the ``.env`` file and the process environment, preferring
-    ``~/.hermes/.env`` so a deliberate key rotation isn't shadowed by a stale
+    ``~/.localstreet/.env`` so a deliberate key rotation isn't shadowed by a stale
     shell export (matches the api-key resolution path — see #20591).  The
     order mirrors the ``PROVIDER_REGISTRY["anthropic"].api_key_env_vars``
     tuple:
@@ -604,7 +604,7 @@ def _resolve_api_key_provider_secret(
 
     from hermes_cli.config import get_env_value_prefer_dotenv
     for env_var in pconfig.api_key_env_vars:
-        # Prefer ~/.hermes/.env over os.environ so a deliberate key rotation
+        # Prefer ~/.localstreet/.env over os.environ so a deliberate key rotation
         # in the user's .env file isn't shadowed by a stale shell export
         # inherited from a parent process (Codex CLI, test runners, etc.).
         val = (get_env_value_prefer_dotenv(env_var) or "").strip()
@@ -799,7 +799,7 @@ def is_rate_limited_auth_error(error: Exception) -> bool:
 
     These failures are transient — re-authenticating cannot resolve them — so
     callers should surface a "retry later" notice and prefer a fallback chain
-    instead of prompting the operator to run ``hermes auth``.
+    instead of prompting the operator to run ``vedant auth``.
     """
     return (
         isinstance(error, AuthError)
@@ -832,7 +832,7 @@ def format_auth_error(error: Exception) -> str:
         return str(error)
 
     if error.relogin_required:
-        return f"{error} Run `hermes model` to re-authenticate."
+        return f"{error} Run `vedant model` to re-authenticate."
 
     if error.code == "subscription_required":
         if error.provider == "nous":
@@ -899,7 +899,7 @@ def _oauth_trace(event: str, *, sequence_id: Optional[str] = None, **fields: Any
 
 
 # =============================================================================
-# Auth Store — persistence layer for ~/.hermes/auth.json
+# Auth Store — persistence layer for ~/.localstreet/auth.json
 # =============================================================================
 
 def _auth_file_path() -> Path:
@@ -962,7 +962,7 @@ def _load_global_auth_store() -> Dict[str, Any]:
     or the global auth.json is absent). Never raises on missing file.
 
     Seat belt: under pytest, refuses to read the real user's
-    ``~/.hermes/auth.json`` even when HERMES_HOME is set to a profile
+    ``~/.localstreet/auth.json`` even when HERMES_HOME is set to a profile
     path. The hermetic conftest does not redirect ``HOME``, so
     ``get_default_hermes_root()`` for a profile-shaped HERMES_HOME can
     still resolve to the real user's home on a dev machine. That would
@@ -1281,7 +1281,7 @@ def _load_provider_state(auth_store: Dict[str, Any], provider_id: str) -> Option
     profile has no entry for ``provider_id``. This mirrors the per-provider
     shadowing already used by ``read_credential_pool``: workers spawned in a
     profile can see providers (e.g. ``nous``) that were only authenticated at
-    global scope. Once the user runs ``hermes auth login <provider>`` inside
+    global scope. Once the user runs ``vedant auth login <provider>`` inside
     the profile, the profile state fully shadows the global state on the next
     read. See issue #18594 follow-up.
     """
@@ -1363,7 +1363,7 @@ def _persist_provider_state_to_store(
 def mark_provider_active_if_unset(provider_id: str) -> None:
     """Set ``active_provider`` to *provider_id* only when none is set yet.
 
-    Used by ``hermes auth add`` OAuth paths that create credential-pool
+    Used by ``vedant auth add`` OAuth paths that create credential-pool
     entries directly (no singleton ``providers.<id>`` block). Adding the
     very first credential for a provider should make it the active provider
     so the setup wizard's ``_model_section_has_credentials()`` check (which
@@ -1421,7 +1421,7 @@ def read_credential_pool(provider_id: Optional[str] = None) -> Dict[str, Any]:
 
     Profile entries always win: the global fallback only applies per-provider
     when the profile has zero entries for that provider. Once the user runs
-    ``hermes auth add <provider>`` inside the profile, profile entries
+    ``vedant auth add <provider>`` inside the profile, profile entries
     fully shadow global for that provider on the next read.
 
     Writes always go to the profile (``write_credential_pool`` is unchanged).
@@ -1775,7 +1775,7 @@ def is_provider_explicitly_configured(provider_id: str) -> bool:
 
 def clear_provider_auth(provider_id: Optional[str] = None) -> bool:
     """
-    Clear auth state for a provider. Used by `hermes logout`.
+    Clear auth state for a provider. Used by `vedant logout`.
     If provider_id is None, clears the active provider.
     Returns True if something was cleared.
     """
@@ -1842,7 +1842,7 @@ def _get_config_hint_for_unknown_provider(provider_name: str) -> str:
         if not issues:
             return ""
 
-        lines = ["Config issue detected — run 'hermes doctor' for full diagnostics:"]
+        lines = ["Config issue detected — run 'vedant doctor' for full diagnostics:"]
         for ci in issues:
             prefix = "ERROR" if ci.severity == "error" else "WARNING"
             lines.append(f"  [{prefix}] {ci.message}")
@@ -1939,7 +1939,7 @@ def resolve_provider(
         if _config_hint:
             msg += f"\n\n{_config_hint}"
         else:
-            msg += " Check 'hermes model' for available providers, or run 'hermes doctor' to diagnose config issues."
+            msg += " Check 'vedant model' for available providers, or run 'vedant doctor' to diagnose config issues."
         raise AuthError(msg, code="invalid_provider")
 
     # Explicit one-off CLI creds always mean openrouter/custom
@@ -1970,10 +1970,10 @@ def resolve_provider(
     if has_usable_secret(os.getenv("OPENAI_API_KEY")) or has_usable_secret(os.getenv("OPENROUTER_API_KEY")):
         return "openrouter"
 
-    # Auto-detect an OpenRouter credential added via `hermes auth add openrouter`
+    # Auto-detect an OpenRouter credential added via `vedant auth add openrouter`
     # (manual pool entry, no env var). Without this, a key that only lives in
     # the credential pool is invisible to auto-detection — the user sees
-    # `hermes auth list` showing the credential while requests go out with no
+    # `vedant auth list` showing the credential while requests go out with no
     # Authorization header ("HTTP 401: Missing Authentication header"). The
     # env-var check above only covers keys exported as OPENROUTER_API_KEY /
     # OPENAI_API_KEY. See issue #42130.
@@ -2013,7 +2013,7 @@ def resolve_provider(
             if has_usable_secret(os.getenv(env_var, "")):
                 # An exported API key now wins over a logged-in OAuth provider
                 # (the #29285 fix). Surface that so a user who deliberately uses
-                # OAuth but has a stale key in ~/.hermes/.env isn't silently
+                # OAuth but has a stale key in ~/.localstreet/.env isn't silently
                 # switched without knowing why.
                 if _oauth_active and _oauth_active != pid:
                     logger.warning(
@@ -2052,9 +2052,9 @@ def resolve_provider(
         pass  # boto3 not installed — skip Bedrock auto-detection
 
     raise AuthError(
-        "No inference provider configured. Run 'hermes model' to choose a "
+        "No inference provider configured. Run 'vedant model' to choose a "
         "provider and model, or set an API key (OPENROUTER_API_KEY, "
-        "OPENAI_API_KEY, etc.) in ~/.hermes/.env.",
+        "OPENAI_API_KEY, etc.) in ~/.localstreet/.env.",
         code="no_provider_configured",
     )
 
@@ -2317,7 +2317,7 @@ def _assert_nous_inference_jwt_usable(
         return
     raise AuthError(
         "Nous Portal access token is not a usable inference JWT "
-        f"({reason}). Re-authenticate with: hermes auth add nous",
+        f"({reason}). Re-authenticate with: vedant auth add nous",
         provider="nous",
         code=reason,
         relogin_required=True,
@@ -2622,7 +2622,7 @@ def get_qwen_auth_status() -> Dict[str, Any]:
     try:
         # Validate the runtime credentials, including refresh when the cached
         # CLI token is expired. Otherwise stale tokens show up as "logged in"
-        # and `hermes model` walks users into a broken Qwen setup flow.
+        # and `vedant model` walks users into a broken Qwen setup flow.
         creds = resolve_qwen_runtime_credentials(refresh_if_expiring=True)
         return {
             "logged_in": True,
@@ -2640,7 +2640,7 @@ def get_qwen_auth_status() -> Dict[str, Any]:
 
 
 # =============================================================================
-# Spotify auth — PKCE tokens stored in ~/.hermes/auth.json
+# Spotify auth — PKCE tokens stored in ~/.localstreet/auth.json
 # =============================================================================
 
 
@@ -2966,7 +2966,7 @@ def _refresh_spotify_oauth_state(
     refresh_token = str(state.get("refresh_token", "") or "").strip()
     if not refresh_token:
         raise AuthError(
-            "Spotify refresh token missing. Run `hermes auth spotify` again.",
+            "Spotify refresh token missing. Run `vedant auth spotify` again.",
             provider="spotify",
             code="spotify_refresh_token_missing",
             relogin_required=True,
@@ -2995,7 +2995,7 @@ def _refresh_spotify_oauth_state(
     if response.status_code >= 400:
         detail = response.text.strip()
         raise AuthError(
-            "Spotify token refresh failed. Run `hermes auth spotify` again."
+            "Spotify token refresh failed. Run `vedant auth spotify` again."
             + (f" Response: {detail}" if detail else ""),
             provider="spotify",
             code="spotify_refresh_failed",
@@ -3033,7 +3033,7 @@ def resolve_spotify_runtime_credentials(
         state = _load_provider_state(auth_store, "spotify")
         if not state:
             raise AuthError(
-                "Spotify is not authenticated. Run `hermes auth spotify` first.",
+                "Spotify is not authenticated. Run `vedant auth spotify` first.",
                 provider="spotify",
                 code="spotify_auth_missing",
                 relogin_required=True,
@@ -3072,7 +3072,7 @@ def resolve_spotify_runtime_credentials(
     access_token = str(state.get("access_token", "") or "").strip()
     if not access_token:
         raise AuthError(
-            "Spotify access token missing. Run `hermes auth spotify` again.",
+            "Spotify access token missing. Run `vedant auth spotify` again.",
             provider="spotify",
             code="spotify_access_token_missing",
             relogin_required=True,
@@ -3113,7 +3113,7 @@ def get_spotify_auth_status() -> Dict[str, Any]:
 
 def _spotify_interactive_setup(redirect_uri_hint: str) -> str:
     """Walk the user through creating a Spotify developer app, persist the
-    resulting client_id to ~/.hermes/.env, and return it.
+    resulting client_id to ~/.localstreet/.env, and return it.
 
     Raises SystemExit if the user aborts or submits an empty value.
     """
@@ -3159,7 +3159,7 @@ def _spotify_interactive_setup(redirect_uri_hint: str) -> str:
         print(f"No Client ID entered. See {SPOTIFY_DOCS_URL} for the full guide.")
         raise SystemExit("Spotify setup cancelled: empty Client ID.")
 
-    # Persist so subsequent `hermes auth spotify` runs skip the wizard.
+    # Persist so subsequent `vedant auth spotify` runs skip the wizard.
     save_env_value("HERMES_SPOTIFY_CLIENT_ID", raw)
     # Only persist the redirect URI if it's non-default, to avoid pinning
     # users to a value the default might later change to.
@@ -3167,7 +3167,7 @@ def _spotify_interactive_setup(redirect_uri_hint: str) -> str:
         save_env_value("HERMES_SPOTIFY_REDIRECT_URI", redirect_uri_hint)
 
     print()
-    print("Saved HERMES_SPOTIFY_CLIENT_ID to ~/.hermes/.env")
+    print("Saved HERMES_SPOTIFY_CLIENT_ID to ~/.localstreet/.env")
     print()
     return raw
 
@@ -3435,7 +3435,7 @@ def _print_loopback_ssh_hint(redirect_uri: str, *, docs_url: str | None = None) 
 
 
 # =============================================================================
-# OpenAI Codex auth — tokens stored in ~/.hermes/auth.json (not ~/.codex/)
+# OpenAI Codex auth — tokens stored in ~/.localstreet/auth.json (not ~/.codex/)
 #
 # Hermes maintains its own Codex OAuth session separate from the Codex CLI
 # and VS Code extension. This prevents refresh token rotation conflicts
@@ -3443,7 +3443,7 @@ def _print_loopback_ssh_hint(redirect_uri: str, *, docs_url: str | None = None) 
 # =============================================================================
 
 def _read_codex_tokens(*, _lock: bool = True) -> Dict[str, Any]:
-    """Read Codex OAuth tokens from Hermes auth store (~/.hermes/auth.json).
+    """Read Codex OAuth tokens from Hermes auth store (~/.localstreet/auth.json).
     
     Returns dict with 'tokens' (access_token, refresh_token) and 'last_refresh'.
     Raises AuthError if no Codex tokens are stored.
@@ -3456,7 +3456,7 @@ def _read_codex_tokens(*, _lock: bool = True) -> Dict[str, Any]:
     state = _load_provider_state(auth_store, "openai-codex")
     if not state:
         raise AuthError(
-            "No Codex credentials stored. Run `hermes auth` to authenticate.",
+            "No Codex credentials stored. Run `vedant auth` to authenticate.",
             provider="openai-codex",
             code="codex_auth_missing",
             relogin_required=True,
@@ -3464,7 +3464,7 @@ def _read_codex_tokens(*, _lock: bool = True) -> Dict[str, Any]:
     tokens = state.get("tokens")
     if not isinstance(tokens, dict):
         raise AuthError(
-            "Codex auth state is missing tokens. Run `hermes auth` to re-authenticate.",
+            "Codex auth state is missing tokens. Run `vedant auth` to re-authenticate.",
             provider="openai-codex",
             code="codex_auth_invalid_shape",
             relogin_required=True,
@@ -3473,14 +3473,14 @@ def _read_codex_tokens(*, _lock: bool = True) -> Dict[str, Any]:
     refresh_token = tokens.get("refresh_token")
     if not isinstance(access_token, str) or not access_token.strip():
         raise AuthError(
-            "Codex auth is missing access_token. Run `hermes auth` to re-authenticate.",
+            "Codex auth is missing access_token. Run `vedant auth` to re-authenticate.",
             provider="openai-codex",
             code="codex_auth_missing_access_token",
             relogin_required=True,
         )
     if not isinstance(refresh_token, str) or not refresh_token.strip():
         raise AuthError(
-            "Codex auth is missing refresh_token. Run `hermes auth` to re-authenticate.",
+            "Codex auth is missing refresh_token. Run `vedant auth` to re-authenticate.",
             provider="openai-codex",
             code="codex_auth_missing_refresh_token",
             relogin_required=True,
@@ -3508,15 +3508,15 @@ def _sync_codex_pool_entries(
     What gets refreshed:
 
     * ``device_code`` — the singleton-seeded entry written by the device-code
-      OAuth flow when the user logged in via ``hermes setup`` / the model
+      OAuth flow when the user logged in via ``vedant setup`` / the model
       picker.  Always synced with the fresh tokens.
-    * ``manual:device_code`` — entries created by ``hermes auth add openai-codex``
+    * ``manual:device_code`` — entries created by ``vedant auth add openai-codex``
       that use the same device-code OAuth mechanism.  ONLY synced if the
       entry's existing access_token matches the *previous* singleton
       access_token (i.e. the entry is a legacy singleton-alias from the
       #33000 workaround era).  Manual entries whose tokens never matched the
       singleton represent INDEPENDENT accounts added via
-      ``hermes auth add openai-codex`` and must not be overwritten by a
+      ``vedant auth add openai-codex`` and must not be overwritten by a
       re-auth that targeted a different account (regression for #39236).
 
       The original #33538 fix refreshed every ``manual:device_code`` entry
@@ -3593,7 +3593,7 @@ def _sync_codex_pool_entries(
 
 
 def _save_codex_tokens(tokens: Dict[str, str], last_refresh: str = None, label: str = None) -> None:
-    """Save Codex OAuth tokens to Hermes auth store (~/.hermes/auth.json)."""
+    """Save Codex OAuth tokens to Hermes auth store (~/.localstreet/auth.json)."""
     if last_refresh is None:
         last_refresh = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     with _auth_store_lock():
@@ -3602,7 +3602,7 @@ def _save_codex_tokens(tokens: Dict[str, str], last_refresh: str = None, label: 
         # Capture the previous singleton tokens BEFORE overwriting them.  The
         # pool-sync step uses this to distinguish legacy singleton-aliases
         # (which should be refreshed) from independent accounts that
-        # ``hermes auth add openai-codex`` created (which must not be
+        # ``vedant auth add openai-codex`` created (which must not be
         # overwritten — see #39236).
         previous_singleton_tokens = state.get("tokens") if isinstance(state.get("tokens"), dict) else None
         state["tokens"] = tokens
@@ -3646,7 +3646,7 @@ def refresh_codex_oauth_pure(
     del access_token  # Access token is only used by callers to decide whether to refresh.
     if not isinstance(refresh_token, str) or not refresh_token.strip():
         raise AuthError(
-            "Codex auth is missing refresh_token. Run `hermes auth` to re-authenticate.",
+            "Codex auth is missing refresh_token. Run `vedant auth` to re-authenticate.",
             provider="openai-codex",
             code="codex_auth_missing_refresh_token",
             relogin_required=True,
@@ -3675,7 +3675,7 @@ def refresh_codex_oauth_pure(
         # The stored refresh token is still valid here — re-authenticating
         # cannot lift a quota cap. Classify distinctly from auth failures so
         # callers surface a "retry later" notice instead of a misleading
-        # "run hermes auth" prompt (see issue #32790).
+        # "run vedant auth" prompt (see issue #32790).
         retry_after = _parse_retry_after_seconds(getattr(response, "headers", None))
         if retry_after is not None:
             message = (
@@ -3725,7 +3725,7 @@ def refresh_codex_oauth_pure(
                 "Codex refresh token was already consumed by another client "
                 "(e.g. Codex CLI or VS Code extension). "
                 "Run `codex` in your terminal to generate fresh tokens, "
-                "then run `hermes auth` to re-authenticate."
+                "then run `vedant auth` to re-authenticate."
             )
             relogin_required = True
         # A 401/403 from the token endpoint always means the refresh token
@@ -3949,7 +3949,7 @@ def resolve_codex_runtime_credentials(
         if read_error is not None:
             raise read_error
         raise AuthError(
-            "No Codex credentials stored. Run `hermes auth` to authenticate.",
+            "No Codex credentials stored. Run `vedant auth` to authenticate.",
             provider="openai-codex",
             code="codex_auth_missing",
             relogin_required=True,
@@ -4292,7 +4292,7 @@ def _pool_codex_access_token() -> str:
 
 
 # =============================================================================
-# xAI Grok OAuth — tokens stored in ~/.hermes/auth.json
+# xAI Grok OAuth — tokens stored in ~/.localstreet/auth.json
 # =============================================================================
 
 def _xai_oauth_state_from_store(auth_store: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -4355,7 +4355,7 @@ def _read_xai_oauth_tokens(*, _lock: bool = True) -> Dict[str, Any]:
             state = global_state
     if not state:
         raise AuthError(
-            "No xAI OAuth credentials stored. Select xAI Grok OAuth (SuperGrok / Premium+) in `hermes model`.",
+            "No xAI OAuth credentials stored. Select xAI Grok OAuth (SuperGrok / Premium+) in `vedant model`.",
             provider="xai-oauth",
             code="xai_auth_missing",
             relogin_required=True,
@@ -4363,7 +4363,7 @@ def _read_xai_oauth_tokens(*, _lock: bool = True) -> Dict[str, Any]:
     tokens = state.get("tokens")
     if not isinstance(tokens, dict):
         raise AuthError(
-            "xAI OAuth state is missing tokens. Re-authenticate with `hermes model`.",
+            "xAI OAuth state is missing tokens. Re-authenticate with `vedant model`.",
             provider="xai-oauth",
             code="xai_auth_invalid_shape",
             relogin_required=True,
@@ -4372,14 +4372,14 @@ def _read_xai_oauth_tokens(*, _lock: bool = True) -> Dict[str, Any]:
     refresh_token = str(tokens.get("refresh_token", "") or "").strip()
     if not access_token:
         raise AuthError(
-            "xAI OAuth state is missing access_token. Re-authenticate with `hermes model`.",
+            "xAI OAuth state is missing access_token. Re-authenticate with `vedant model`.",
             provider="xai-oauth",
             code="xai_auth_missing_access_token",
             relogin_required=True,
         )
     if not refresh_token:
         raise AuthError(
-            "xAI OAuth state is missing refresh_token. Re-authenticate with `hermes model`.",
+            "xAI OAuth state is missing refresh_token. Re-authenticate with `vedant model`.",
             provider="xai-oauth",
             code="xai_auth_missing_refresh_token",
             relogin_required=True,
@@ -4423,7 +4423,7 @@ def _write_through_xai_oauth_to_global_root(state: Dict[str, Any]) -> None:
         # Classic mode (profile == root); the profile save already hit root.
         return
     # Seat belt: under pytest, refuse to write the real user's
-    # ~/.hermes/auth.json even when HERMES_HOME points at a profile path
+    # ~/.localstreet/auth.json even when HERMES_HOME points at a profile path
     # (mirrors the read-side guard in _load_global_auth_store). Uses the
     # unmodified HOME env, not Path.home() which fixtures may monkeypatch.
     if os.environ.get("PYTEST_CURRENT_TEST"):
@@ -4513,7 +4513,7 @@ def _xai_proactive_refresh_skew_seconds(access_token: str) -> int:
     gateway-oriented :data:`XAI_ACCESS_TOKEN_REFRESH_SKEW_SECONDS` window
     makes sense. Device-code logins often return ~15-minute JWTs; applying
     the full hour-long skew to those forces a refresh on *every* credential
-    resolution (chat turn, Imagine tool call, ``hermes auth status``, …),
+    resolution (chat turn, Imagine tool call, ``vedant auth status``, …),
     which burns single-use refresh tokens and races concurrent callers into
     ``invalid_grant`` quarantine.
     """
@@ -4544,7 +4544,7 @@ def _xai_validate_oauth_endpoint(url: str, *, field: str) -> str:
     """Refuse any OIDC discovery endpoint that isn't HTTPS on the xAI origin.
 
     The OIDC discovery response is a long-lived, low-frequency request whose
-    output is cached in ``~/.hermes/auth.json``. A single MITM during initial
+    output is cached in ``~/.localstreet/auth.json``. A single MITM during initial
     login could substitute a malicious ``token_endpoint``; that URL would
     then receive the refresh_token on every subsequent refresh — a permanent
     credential leak from a one-time MITM. Validating scheme + host pins the
@@ -4574,7 +4574,7 @@ def _xai_validate_oauth_endpoint(url: str, *, field: str) -> str:
             f"xAI OIDC discovery {field} host {host!r} is not on the xAI origin "
             f"(expected x.ai or a *.x.ai subdomain). Refusing to use a cached "
             f"endpoint that may have been substituted by a MITM during initial "
-            f"discovery; re-authenticate with `hermes model` to re-fetch.",
+            f"discovery; re-authenticate with `vedant model` to re-fetch.",
             provider="xai-oauth",
             code="xai_discovery_invalid",
         )
@@ -4696,7 +4696,7 @@ def refresh_xai_oauth_pure(
     del access_token
     if not isinstance(refresh_token, str) or not refresh_token.strip():
         raise AuthError(
-            "xAI OAuth is missing refresh_token. Re-authenticate with `hermes model`.",
+            "xAI OAuth is missing refresh_token. Re-authenticate with `vedant model`.",
             provider="xai-oauth",
             code="xai_auth_missing_refresh_token",
             relogin_required=True,
@@ -4706,7 +4706,7 @@ def refresh_xai_oauth_pure(
     # written by an older Hermes (or hand-edited) may carry a non-xAI
     # token_endpoint that would receive every future refresh_token in
     # plaintext if we trusted it blindly. Cheap suffix check; fast-fail
-    # with a clear error so the user can re-run `hermes model` to refetch.
+    # with a clear error so the user can re-run `vedant model` to refetch.
     _xai_validate_oauth_endpoint(endpoint, field="token_endpoint")
     timeout = httpx.Timeout(max(5.0, float(timeout_seconds)))
     with httpx.Client(timeout=timeout, headers={"Accept": "application/json"}) as client:
@@ -4723,7 +4723,7 @@ def refresh_xai_oauth_pure(
         detail = response.text.strip()
         # ``403`` from xAI's token endpoint is almost always a tier /
         # entitlement gate (the OAuth grant exists but the account isn't
-        # on the allowlist for API access).  Re-running ``hermes model``
+        # on the allowlist for API access).  Re-running ``vedant model``
         # won't fix that — surface a separate error code so
         # ``format_auth_error`` doesn't append a misleading
         # re-authenticate hint, and point users at the ``XAI_API_KEY``
@@ -5065,12 +5065,12 @@ def _poll_for_token(
 
 # -----------------------------------------------------------------------------
 # Shared Nous token store — lets OAuth credentials persist across profiles
-# so a new `hermes --profile <name> auth add nous --type oauth` can one-tap
+# so a new `vedant --profile <name> auth add nous --type oauth` can one-tap
 # import instead of running the full device-code flow every time.
 #
 # File lives at ${HERMES_SHARED_AUTH_DIR}/nous_auth.json, defaulting to
 # ``<hermes-root>/shared/nous_auth.json`` where ``<hermes-root>`` is what
-# ``get_default_hermes_root()`` returns — ``~/.hermes`` on Linux/macOS,
+# ``get_default_hermes_root()`` returns — ``~/.localstreet`` on Linux/macOS,
 # ``%LOCALAPPDATA%\hermes`` on native Windows, or the Docker/custom root.
 # It is OUTSIDE any named profile's HERMES_HOME so named profiles (which
 # typically live under ``<hermes-root>/profiles/<name>/``) all see the
@@ -5093,7 +5093,7 @@ def _nous_shared_auth_dir() -> Path:
     path without touching the real user's home. Defaults to
     ``<hermes-root>/shared/``, where ``<hermes-root>`` is what
     :func:`hermes_constants.get_default_hermes_root` returns — so
-    Linux/macOS classic installs land at ``~/.hermes/shared/``, native
+    Linux/macOS classic installs land at ``~/.localstreet/shared/``, native
     Windows installs at ``%LOCALAPPDATA%\\hermes\\shared\\``, and
     Docker / custom ``HERMES_HOME`` deployments at
     ``<HERMES_HOME>/shared/``. Sits outside any named profile so all
@@ -5590,12 +5590,12 @@ def _refresh_access_token(
             "Nous Portal detected refresh-token reuse and revoked this session.\n"
             "This usually means an external process (monitoring script, "
             "custom self-heal hook, or another Hermes install sharing "
-            "~/.hermes/auth.json) called POST /api/oauth/token with Hermes's "
+            "~/.localstreet/auth.json) called POST /api/oauth/token with Hermes's "
             "refresh token without persisting the rotated token back.\n"
             "Nous refresh tokens are single-use — only Hermes may call the "
-            "refresh endpoint. For health checks, use `hermes auth status` "
+            "refresh endpoint. For health checks, use `vedant auth status` "
             "instead.\n"
-            "Re-authenticate with: hermes auth add nous"
+            "Re-authenticate with: vedant auth add nous"
         )
         relogin = True
 
@@ -5851,7 +5851,7 @@ def refresh_nous_oauth_pure(
                     raise AuthError(
                         "Nous Portal access token is not a usable inference JWT "
                         f"({current_invoke_jwt_status}) and no refresh token is available. "
-                        "Re-authenticate with: hermes auth add nous",
+                        "Re-authenticate with: vedant auth add nous",
                         provider="nous",
                         code=current_invoke_jwt_status,
                         relogin_required=True,
@@ -5940,7 +5940,7 @@ def persist_nous_credentials(
       ``_seed_from_singletons()`` during pool load.
     - ``credential_pool.nous``: used by the runtime ``pool.select()`` path.
 
-    Historically ``hermes auth add nous`` wrote a ``manual:device_code`` pool
+    Historically ``vedant auth add nous`` wrote a ``manual:device_code`` pool
     entry only, skipping ``providers.nous``. When the runtime credential
     expired, the recovery path read the empty singleton state and raised
     ``AuthError`` silently (``logger.debug`` at INFO level).
@@ -5951,7 +5951,7 @@ def persist_nous_credentials(
     place; the pool never accumulates duplicate device_code rows.
 
     ``label`` is an optional user-chosen display name (from
-    ``hermes auth add nous --label <name>``).  It gets embedded in the
+    ``vedant auth add nous --label <name>``).  It gets embedded in the
     singleton state so that ``_seed_from_singletons`` uses it as the pool
     entry's label on every subsequent ``load_pool("nous")`` instead of the
     auto-derived token fingerprint.  When ``None``, the auto-derived label
@@ -5972,7 +5972,7 @@ def persist_nous_credentials(
         _save_auth_store(auth_store)
 
     # Mirror to the shared store so a new profile can one-tap import
-    # these credentials via `hermes auth add nous --type oauth`. Best-
+    # these credentials via `vedant auth add nous --type oauth`. Best-
     # effort: any I/O failure is logged and swallowed (the per-profile
     # auth.json is still the source of truth).
     _write_shared_nous_state(state)
@@ -6191,7 +6191,7 @@ def resolve_nous_runtime_credentials(
                             raise AuthError(
                                 "Nous Portal access token is not a usable inference JWT "
                                 f"({reason}) and no refresh token is available. "
-                                "Re-authenticate with: hermes auth add nous",
+                                "Re-authenticate with: vedant auth add nous",
                                 provider="nous",
                                 code=reason,
                                 relogin_required=True,
@@ -6399,12 +6399,12 @@ def _snapshot_nous_pool_status() -> Dict[str, Any]:
 # ── Process-level memo for get_nous_auth_status() ──
 # get_nous_auth_status() validates state by calling resolve_nous_runtime_credentials(),
 # which does a synchronous OAuth refresh POST to portal.nousresearch.com. That can take
-# ~350ms even on the failure path, and read-only UI surfaces (`hermes tools`, status panels,
-# subscription-feature checks) call it many times per render — `hermes tools` → "All Platforms"
+# ~350ms even on the failure path, and read-only UI surfaces (`vedant tools`, status panels,
+# subscription-feature checks) call it many times per render — `vedant tools` → "All Platforms"
 # was firing the refresh ~31× during one menu paint, racking up >13s of HTTP and burning
 # single-use refresh tokens. Cache the snapshot for a few seconds, keyed on the auth.json
 # path + mtime so that profile switches do not share a process memo and
-# `hermes auth login/logout/add/remove` invalidate naturally on the next call.
+# `vedant auth login/logout/add/remove` invalidate naturally on the next call.
 _NOUS_AUTH_STATUS_CACHE_TTL = 15.0  # seconds
 _nous_auth_status_cache: Optional[Tuple[float, str, Optional[float], Dict[str, Any]]] = None
 
@@ -6652,11 +6652,11 @@ def get_nous_session_validity() -> str:
 def get_codex_auth_status() -> Dict[str, Any]:
     """Status snapshot for Codex auth.
     
-    Checks the credential pool first (where `hermes auth` stores credentials),
+    Checks the credential pool first (where `vedant auth` stores credentials),
     then falls back to the legacy provider state.
     """
-    # Check credential pool first — this is where `hermes auth` and
-    # `hermes model` store device_code tokens.
+    # Check credential pool first — this is where `vedant auth` and
+    # `vedant model` store device_code tokens.
     try:
         from agent.credential_pool import load_pool
         pool = load_pool("openai-codex")
@@ -6862,7 +6862,7 @@ def _get_azure_foundry_auth_status() -> Dict[str, Any]:
     checks:
 
       * ``auth_mode == "entra_id"`` AND ``azure-identity`` is importable
-        (we do NOT mint a token here; ``hermes doctor`` runs the live
+        (we do NOT mint a token here; ``vedant doctor`` runs the live
         probe and reports whether the credential chain can acquire one).
       * ``auth_mode == "api_key"`` (default) AND ``AZURE_FOUNDRY_API_KEY``
         is set with a usable value.
@@ -6915,7 +6915,7 @@ def _get_azure_foundry_auth_status() -> Dict[str, Any]:
             else:
                 info["hint"] = (
                     "azure-identity is installed; live credential validation "
-                    "is skipped here. Run `hermes doctor` to verify token acquisition."
+                    "is skipped here. Run `vedant doctor` to verify token acquisition."
                 )
             return info
         except Exception as exc:
@@ -7149,7 +7149,7 @@ def _should_reset_config_provider_on_logout(provider_id: Optional[str]) -> bool:
 def _logout_default_provider_from_config() -> Optional[str]:
     """Fallback logout target when auth.json has no active provider.
 
-    `hermes logout` historically keyed off auth.json.active_provider only.
+    `vedant logout` historically keyed off auth.json.active_provider only.
     That left users stuck when auth state had already been cleared but
     config.yaml still selected an OAuth provider such as openai-codex for the
     agent model: there was no active auth provider to target, so logout printed
@@ -7521,10 +7521,10 @@ def _save_model_choice(model_id: str) -> None:
 
 
 def login_command(args) -> None:
-    """Deprecated: use 'hermes model' or 'hermes setup' instead."""
-    print("The 'hermes login' command has been removed.")
-    print("Use 'hermes auth' to manage credentials,")
-    print("'hermes model' to select a provider, or 'hermes setup' for full setup.")
+    """Deprecated: use 'vedant model' or 'vedant setup' instead."""
+    print("The 'vedant login' command has been removed.")
+    print("Use 'vedant auth' to manage credentials,")
+    print("'vedant model' to select a provider, or 'vedant setup' for full setup.")
     raise SystemExit(0)
 
 
@@ -7534,7 +7534,7 @@ def _login_openai_codex(
     *,
     force_new_login: bool = False,
 ) -> None:
-    """OpenAI Codex login via device code flow. Tokens stored in ~/.hermes/auth.json."""
+    """OpenAI Codex login via device code flow. Tokens stored in ~/.localstreet/auth.json."""
 
     del args, pconfig  # kept for parity with other provider login helpers
 
@@ -7654,9 +7654,9 @@ def _login_xai_oauth(
         auth_mode="oauth_device_code",
     )
     # An explicit interactive re-login is a strong signal the user wants the
-    # xAI credential re-enabled. ``hermes auth remove xai-oauth`` leaves a
+    # xAI credential re-enabled. ``vedant auth remove xai-oauth`` leaves a
     # ``device_code`` suppression marker that otherwise stops the singleton
-    # seed from re-creating the pool entry, so ``hermes auth list`` would show
+    # seed from re-creating the pool entry, so ``vedant auth list`` would show
     # nothing even though the agent still works via the singleton fallback.
     # Clear it here (same helper ``auth_add_command`` uses). This is kept OUT
     # of ``_save_xai_oauth_tokens`` on purpose — that helper is shared with the
@@ -8185,7 +8185,7 @@ def _minimax_poll_token(
 
 
 def _minimax_save_auth_state(auth_state: Dict[str, Any]) -> None:
-    """Persist MiniMax OAuth state to Hermes auth store (~/.hermes/auth.json)."""
+    """Persist MiniMax OAuth state to Hermes auth store (~/.localstreet/auth.json)."""
     with _auth_store_lock():
         auth_store = _load_auth_store()
         _save_provider_state(auth_store, "minimax-oauth", auth_state)
@@ -8393,7 +8393,7 @@ def build_minimax_oauth_token_provider() -> Callable[[], str]:
         state = get_provider_auth_state("minimax-oauth")
         if not state or not state.get("access_token"):
             raise AuthError(
-                "Not logged into MiniMax OAuth. Run `hermes model` and select "
+                "Not logged into MiniMax OAuth. Run `vedant model` and select "
                 "MiniMax (OAuth).",
                 provider="minimax-oauth", code="not_logged_in", relogin_required=True,
             )
@@ -8427,13 +8427,13 @@ def resolve_minimax_oauth_runtime_credentials(
     :func:`build_minimax_oauth_token_provider` for the rationale.
 
     The default (string ``api_key``) preserves the historical contract for
-    diagnostic call sites like ``hermes status`` that just want to know
+    diagnostic call sites like ``vedant status`` that just want to know
     whether a valid token exists right now.
     """
     state = get_provider_auth_state("minimax-oauth")
     if not state or not state.get("access_token"):
         raise AuthError(
-            "Not logged into MiniMax OAuth. Run `hermes model` and select "
+            "Not logged into MiniMax OAuth. Run `vedant model` and select "
             "MiniMax (OAuth).",
             provider="minimax-oauth", code="not_logged_in", relogin_required=True,
         )
@@ -8621,7 +8621,7 @@ def _nous_device_code_login(
             print(message)
             print(f"  Subscribe here: {portal_url}/billing")
             print()
-            print("After subscribing, run `hermes model` again to finish setup.")
+            print("After subscribing, run `vedant model` again to finish setup.")
             raise SystemExit(1)
         raise
 
@@ -8896,7 +8896,7 @@ def _login_nous(args, pconfig: ProviderConfig) -> None:
                 _save_auth_store(auth_store)
             print()
             print("No provider change. Nous credentials saved for future use.")
-            print("  Run `hermes model` again to switch to Nous Portal.")
+            print("  Run `vedant model` again to switch to Nous Portal.")
             return
 
         config_path = _update_config_for_provider(
@@ -8940,7 +8940,7 @@ def logout_command(args) -> None:
         if should_reset_config and os.getenv("OPENROUTER_API_KEY"):
             print("Hermes will use OpenRouter for inference.")
         elif should_reset_config:
-            print("Run `hermes model` or configure an API key to use Hermes.")
+            print("Run `vedant model` or configure an API key to use Hermes.")
         else:
             print("Model provider configuration was unchanged.")
     else:

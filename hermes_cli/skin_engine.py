@@ -2,12 +2,12 @@
 
 A data-driven skin system that lets users (and Hermes itself) customize the
 visual appearance across the CLI, the TUI, and the desktop GUI from a single
-file. Skins are defined as YAML files in ~/.hermes/skins/ or as built-in presets.
+file. Skins are defined as YAML files in ~/.localstreet/skins/ or as built-in presets.
 No code changes are needed to add a new skin.
 
 This module is the source of truth: it resolves the active skin, and the gateway
 pushes the resolved palette to the TUI and desktop (see tui_gateway's
-``resolve_skin`` / ``skin.changed``). A skin dropped in ~/.hermes/skins/ therefore
+``resolve_skin`` / ``skin.changed``). A skin dropped in ~/.localstreet/skins/ therefore
 themes all three surfaces at once — the theme analogue of the plugin SDK.
 
 SKIN YAML SCHEMA
@@ -94,10 +94,10 @@ All fields are optional. Missing values inherit from the ``default`` skin.
 
     # Branding: text strings used throughout the CLI
     branding:
-      agent_name: "Hermes Agent"          # Banner title, status display
+      agent_name: "Vedant"          # Banner title, status display
       welcome: "Welcome message"          # Shown at CLI startup
       goodbye: "Goodbye! ⚕"              # Shown on exit
-      response_label: " ⚕ Hermes "       # Response box header label
+      response_label: " Vedant "       # Response box header label
       prompt_symbol: "❯"                 # Input prompt symbol (bare token; renderers add trailing space)
       help_header: "(^_^)? Commands"      # /help header text
 
@@ -119,15 +119,15 @@ USAGE
 
     skin = get_active_skin()
     print(skin.colors["banner_title"])    # "#FFD700"
-    print(skin.get_branding("agent_name"))  # "Hermes Agent"
+    print(skin.get_branding("agent_name"))  # "Vedant"
 
     set_active_skin("ares")               # Switch to built-in ares skin
-    set_active_skin("mytheme")            # Switch to user skin from ~/.hermes/skins/
+    set_active_skin("mytheme")            # Switch to user skin from ~/.localstreet/skins/
 
 BUILT-IN SKINS
 ==============
 
-- ``default`` — Classic Hermes gold/kawaii (the current look)
+- ``default`` — Vedant teal (default fallback) (the current look)
 - ``ares``    — Crimson/bronze war-god theme with custom spinner wings
 - ``mono``    — Clean grayscale monochrome
 - ``slate``   — Cool blue developer-focused theme
@@ -137,7 +137,7 @@ BUILT-IN SKINS
 USER SKINS
 ==========
 
-Drop a YAML file in ``~/.hermes/skins/<name>.yaml`` following the schema above.
+Drop a YAML file in ``~/.localstreet/skins/<name>.yaml`` following the schema above.
 Activate with ``/skin <name>`` in the CLI or ``display.skin: <name>`` in config.yaml.
 """
 
@@ -201,87 +201,232 @@ class SkinConfig:
 _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
     "default": {
         "name": "default",
-        "description": "Classic Hermes — gold and kawaii",
-        # Dark-authored. Values match the TUI's DARK_THEME so the classic CLI
-        # and the TUI render the same Hermes gold.
+        "description": "Vedant classic — teal accents",
         "colors": {
-            "banner_border": "#CD7F32",
-            "banner_title": "#FFD700",
-            "banner_accent": "#FFBF00",
-            "banner_dim": "#B8860B",
-            "banner_text": "#FFF8DC",
-            "ui_accent": "#FFBF00",
-            "ui_label": "#DAA520",
+            "banner_border": "#0F766E",
+            "banner_title": "#2DD4BF",
+            "banner_accent": "#14B8A6",
+            "banner_dim": "#0D9488",
+            "banner_text": "#CCFBF1",
+            "ui_accent": "#14B8A6",
+            "ui_label": "#5EEAD4",
             "ui_ok": "#4caf50",
             "ui_error": "#ef5350",
             "ui_warn": "#ffa726",
-            "prompt": "#FFF8DC",
-            "input_rule": "#CD7F32",
-            "response_border": "#FFD700",
-            "status_bar_bg": "#1a1a2e",
-            "status_bar_text": "#C0C0C0",
-            "status_bar_strong": "#FFD700",
-            "status_bar_dim": "#8A7A4A",
+            "prompt": "#CCFBF1",
+            "input_rule": "#0F766E",
+            "response_border": "#2DD4BF",
+            "status_bar_bg": "#0B1F1C",
+            "status_bar_text": "#A8DAD0",
+            "status_bar_strong": "#2DD4BF",
+            "status_bar_dim": "#5A8A82",
             "status_bar_good": "#8FBC8F",
-            "status_bar_warn": "#FFD700",
+            "status_bar_warn": "#2DD4BF",
             "status_bar_bad": "#FF8C00",
             "status_bar_critical": "#FF6B6B",
-            "session_label": "#DAA520",
-            "session_border": "#8B8682",
-            "completion_menu_bg": "#1a1a2e",
-            "completion_menu_current_bg": "#333355",
-            "selection_bg": "#3a3a55",
-            "shell_dollar": "#4dabf7",
-            "voice_status_bg": "#1a1a2e",
+            "session_label": "#5EEAD4",
+            "session_border": "#3D6B64",
+            "completion_menu_bg": "#0B1F1C",
+            "completion_menu_current_bg": "#134E4A",
+            "selection_bg": "#115E59",
+            "shell_dollar": "#2DD4BF",
+            "voice_status_bg": "#0B1F1C",
         },
-        # Light overlay (merged onto `colors`; dark mode renders the vivid
-        # block above untouched). The goldenrod ladder: on white, the vivid
-        # #FFD700/#FFBF00 read as glare and WCAG-darkened mustard (#867000)
-        # reads as mud — the sweet spot is the statusbar's goldenrod family
-        # (#B8860B/#DAA520): hue kept, saturation tamed, mid luminance.
-        # Hierarchy on white: ink body 8.9:1 > fade 5.2 > label 3.7 >
-        # muted 3.3 > title 2.7 > headers 2.4 (accents recede last, like
-        # slate's pastels — the raw-canon look, just not neon).
         "light_colors": {
-            "banner_title": "#C8961E",
-            "banner_accent": "#D89B04",
-            "banner_dim": "#B8860B",
-            "banner_text": "#5C4718",
-            "ui_accent": "#D89B04",
-            "ui_label": "#A97E10",
+            "banner_title": "#0F766E",
+            "banner_accent": "#0D9488",
+            "banner_dim": "#0F766E",
+            "banner_text": "#134E4A",
+            "ui_accent": "#0D9488",
+            "ui_label": "#0F766E",
             "ui_ok": "#2E7D32",
             "ui_error": "#C62828",
             "ui_warn": "#D97706",
-            "prompt": "#5C4718",
-            "response_border": "#C8961E",
-            "session_label": "#A97E10",
+            "prompt": "#134E4A",
+            "response_border": "#0F766E",
+            "session_label": "#0F766E",
             "status_bar_text": "#6F6F6F",
-            "status_bar_strong": "#C8961E",
-            "status_bar_dim": "#9A8A5A",
+            "status_bar_strong": "#0F766E",
+            "status_bar_dim": "#5A8A82",
             "status_bar_good": "#2E7D32",
-            "status_bar_warn": "#C8961E",
+            "status_bar_warn": "#0F766E",
             "status_bar_bad": "#C2410C",
             "status_bar_critical": "#B91C1C",
-            "shell_dollar": "#1E6FC0",
-            # Fills: flip the dark navy surfaces to light polarity.
-            "completion_menu_bg": "#F5F5F5",
-            "completion_menu_current_bg": "#E0D1BF",
-            "selection_bg": "#D4E4F7",
-            "status_bar_bg": "#F5F5F5",
-            "voice_status_bg": "#F5F5F5",
+            "shell_dollar": "#0D9488",
+            "completion_menu_bg": "#F0FDFA",
+            "completion_menu_current_bg": "#CCFBF1",
+            "selection_bg": "#99F6E4",
+            "status_bar_bg": "#F0FDFA",
+            "voice_status_bg": "#F0FDFA",
         },
-        "spinner": {
-            # Empty = use hardcoded defaults in display.py
-        },
+        "spinner": {},
         "branding": {
-            "agent_name": "Hermes Agent",
-            "welcome": "Welcome to Hermes Agent! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Hermes ",
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant! Type your message or /help for commands.",
+            "goodbye": "Goodbye!",
+            "response_label": " Vedant ",
             "prompt_symbol": "❯",
-            "help_header": "(^_^)? Available Commands",
+            "help_header": "Available Commands",
         },
         "tool_prefix": "┊",
+    },
+    "vedant": {
+        "name": "vedant",
+        "description": "Vedant theme (alias)",
+        "colors": {
+            "banner_border": "#0F766E",
+            "banner_title": "#2DD4BF",
+            "banner_accent": "#14B8A6",
+            "banner_dim": "#0D9488",
+            "banner_text": "#CCFBF1",
+            "ui_accent": "#14B8A6",
+            "ui_label": "#5EEAD4",
+            "ui_ok": "#4caf50",
+            "ui_error": "#ef5350",
+            "ui_warn": "#ffa726",
+            "prompt": "#CCFBF1",
+            "input_rule": "#0F766E",
+            "response_border": "#2DD4BF",
+            "status_bar_bg": "#042F2E",
+            "status_bar_text": "#A8DAD0",
+            "status_bar_strong": "#2DD4BF",
+            "status_bar_dim": "#5A8A82",
+            "status_bar_good": "#8FBC8F",
+            "status_bar_warn": "#2DD4BF",
+            "status_bar_bad": "#FF8C00",
+            "status_bar_critical": "#FF6B6B",
+            "session_label": "#5EEAD4",
+            "session_border": "#3D6B64",
+            "completion_menu_bg": "#042F2E",
+            "completion_menu_current_bg": "#134E4A",
+            "selection_bg": "#115E59",
+            "shell_dollar": "#2DD4BF",
+            "voice_status_bg": "#042F2E",
+        },
+        "light_colors": {
+            "banner_title": "#0F766E",
+            "banner_accent": "#0D9488",
+            "banner_dim": "#0F766E",
+            "banner_text": "#134E4A",
+            "ui_accent": "#0D9488",
+            "ui_label": "#0F766E",
+            "ui_ok": "#2E7D32",
+            "ui_error": "#C62828",
+            "ui_warn": "#D97706",
+            "prompt": "#134E4A",
+            "response_border": "#0F766E",
+            "session_label": "#0F766E",
+            "status_bar_text": "#6F6F6F",
+            "status_bar_strong": "#0F766E",
+            "status_bar_dim": "#5A8A82",
+            "status_bar_good": "#2E7D32",
+            "status_bar_warn": "#0F766E",
+            "status_bar_bad": "#C2410C",
+            "status_bar_critical": "#B91C1C",
+            "shell_dollar": "#0D9488",
+            "completion_menu_bg": "#F0FDFA",
+            "completion_menu_current_bg": "#CCFBF1",
+            "selection_bg": "#99F6E4",
+            "status_bar_bg": "#F0FDFA",
+            "voice_status_bg": "#F0FDFA",
+        },
+        "spinner": {
+            "thinking_verbs": ["deciding", "navigating", "automating", "planning"],
+        },
+        "branding": {
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant — Virtual Executive for Decision-making, Automation, Navigation, and Tasks. Type /help for commands.",
+            "goodbye": "Goodbye!",
+            "response_label": " Vedant ",
+            "prompt_symbol": "❯",
+            "help_header": "Available Commands",
+        },
+        "tool_prefix": "┊",
+        "banner_logo": """[bold #2DD4BF]██╗   ██╗██████╗ ██████╗  ██████╗ ██╗    ██╗███╗   ██╗[/]
+[bold #14B8A6]██║   ██║██╔══██╗██╔══██╗██╔═══██╗██║    ██║████╗  ██║[/]
+[#0D9488]██║   ██║██████╔╝██║  ██║██║   ██║██║ █╗ ██║██╔██╗ ██║[/]
+[#0F766E]██║   ██║██╔═══╝ ██║  ██║██║   ██║██║███╗██║██║╚██╗██║[/]
+[#115E59]╚██████╔╝██║     ██████╔╝╚██████╔╝╚███╔███╔╝██║ ╚████║[/]
+[#134E4A] ╚═════╝ ╚═╝     ╚═════╝  ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═══╝[/]""",
+    },
+    "localstreet": {
+        "name": "localstreet",
+        "description": "Vedant theme (alias)",
+        "colors": {
+            "banner_border": "#0F766E",
+            "banner_title": "#2DD4BF",
+            "banner_accent": "#14B8A6",
+            "banner_dim": "#0D9488",
+            "banner_text": "#CCFBF1",
+            "ui_accent": "#14B8A6",
+            "ui_label": "#5EEAD4",
+            "ui_ok": "#4caf50",
+            "ui_error": "#ef5350",
+            "ui_warn": "#ffa726",
+            "prompt": "#CCFBF1",
+            "input_rule": "#0F766E",
+            "response_border": "#2DD4BF",
+            "status_bar_bg": "#042F2E",
+            "status_bar_text": "#A8DAD0",
+            "status_bar_strong": "#2DD4BF",
+            "status_bar_dim": "#5A8A82",
+            "status_bar_good": "#8FBC8F",
+            "status_bar_warn": "#2DD4BF",
+            "status_bar_bad": "#FF8C00",
+            "status_bar_critical": "#FF6B6B",
+            "session_label": "#5EEAD4",
+            "session_border": "#3D6B64",
+            "completion_menu_bg": "#042F2E",
+            "completion_menu_current_bg": "#134E4A",
+            "selection_bg": "#115E59",
+            "shell_dollar": "#2DD4BF",
+            "voice_status_bg": "#042F2E",
+        },
+        "light_colors": {
+            "banner_title": "#0F766E",
+            "banner_accent": "#0D9488",
+            "banner_dim": "#0F766E",
+            "banner_text": "#134E4A",
+            "ui_accent": "#0D9488",
+            "ui_label": "#0F766E",
+            "ui_ok": "#2E7D32",
+            "ui_error": "#C62828",
+            "ui_warn": "#D97706",
+            "prompt": "#134E4A",
+            "response_border": "#0F766E",
+            "session_label": "#0F766E",
+            "status_bar_text": "#6F6F6F",
+            "status_bar_strong": "#0F766E",
+            "status_bar_dim": "#5A8A82",
+            "status_bar_good": "#2E7D32",
+            "status_bar_warn": "#0F766E",
+            "status_bar_bad": "#C2410C",
+            "status_bar_critical": "#B91C1C",
+            "shell_dollar": "#0D9488",
+            "completion_menu_bg": "#F0FDFA",
+            "completion_menu_current_bg": "#CCFBF1",
+            "selection_bg": "#99F6E4",
+            "status_bar_bg": "#F0FDFA",
+            "voice_status_bg": "#F0FDFA",
+        },
+        "spinner": {
+            "thinking_verbs": ["deciding", "navigating", "automating", "planning"],
+        },
+        "branding": {
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant — Virtual Executive for Decision-making, Automation, Navigation, and Tasks. Type /help for commands.",
+            "goodbye": "Goodbye!",
+            "response_label": " Vedant ",
+            "prompt_symbol": "❯",
+            "help_header": "Available Commands",
+        },
+        "tool_prefix": "┊",
+        "banner_logo": """[bold #2DD4BF]██╗   ██╗██████╗ ██████╗  ██████╗ ██╗    ██╗███╗   ██╗[/]
+[bold #14B8A6]██║   ██║██╔══██╗██╔══██╗██╔═══██╗██║    ██║████╗  ██║[/]
+[#0D9488]██║   ██║██████╔╝██║  ██║██║   ██║██║ █╗ ██║██╔██╗ ██║[/]
+[#0F766E]██║   ██║██╔═══╝ ██║  ██║██║   ██║██║███╗██║██║╚██╗██║[/]
+[#115E59]╚██████╔╝██║     ██████╔╝╚██████╔╝╚███╔███╔╝██║ ╚████║[/]
+[#134E4A] ╚═════╝ ╚═╝     ╚═════╝  ╚═════╝  ╚══╝╚══╝ ╚═╝  ╚═══╝[/]""",
     },
     "ares": {
         "name": "ares",
@@ -395,10 +540,10 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         },
         "spinner": {},
         "branding": {
-            "agent_name": "Hermes Agent",
-            "welcome": "Welcome to Hermes Agent! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Hermes ",
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant! Type your message or /help for commands.",
+            "goodbye": "Goodbye!",
+            "response_label": " Vedant ",
             "prompt_symbol": "❯",
             "help_header": "[?] Available Commands",
         },
@@ -439,12 +584,12 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         },
         "spinner": {},
         "branding": {
-            "agent_name": "Hermes Agent",
-            "welcome": "Welcome to Hermes Agent! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Hermes ",
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant! Type your message or /help for commands.",
+            "goodbye": "Goodbye!",
+            "response_label": " Vedant ",
             "prompt_symbol": "❯",
-            "help_header": "(^_^)? Available Commands",
+            "help_header": "Available Commands",
         },
         "tool_prefix": "┊",
     },
@@ -485,10 +630,10 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         },
         "spinner": {},
         "branding": {
-            "agent_name": "Hermes Agent",
-            "welcome": "Welcome to Hermes Agent! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Hermes ",
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant! Type your message or /help for commands.",
+            "goodbye": "Goodbye!",
+            "response_label": " Vedant ",
             "prompt_symbol": "❯",
             "help_header": "[?] Available Commands",
         },
@@ -531,12 +676,12 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         },
         "spinner": {},
         "branding": {
-            "agent_name": "Hermes Agent",
-            "welcome": "Welcome to Hermes Agent! Type your message or /help for commands.",
+            "agent_name": "Vedant",
+            "welcome": "Welcome to Vedant! Type your message or /help for commands.",
             "goodbye": "Goodbye! \u2695",
             "response_label": " \u2695 Hermes ",
             "prompt_symbol": "\u276f",
-            "help_header": "(^_^)? Available Commands",
+            "help_header": "Available Commands",
         },
         "tool_prefix": "\u250a",
     },
@@ -782,7 +927,7 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 
 _active_skin: Optional[SkinConfig] = None
-_active_skin_name: str = "default"
+_active_skin_name: str = "localstreet"
 
 
 def _skins_dir() -> Path:
@@ -937,11 +1082,11 @@ def init_skin_from_config(config: dict) -> None:
     display = config.get("display") or {}
     if not isinstance(display, dict):
         display = {}
-    skin_name = display.get("skin", "default")
+    skin_name = display.get("skin", "localstreet")
     if isinstance(skin_name, str) and skin_name.strip():
         set_active_skin(skin_name.strip())
     else:
-        set_active_skin("default")
+        set_active_skin("localstreet")
 
 
 # =============================================================================

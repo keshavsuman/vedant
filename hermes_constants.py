@@ -43,33 +43,35 @@ def get_hermes_home_override() -> str | None:
 
 
 def _get_platform_default_hermes_home() -> Path:
-    """Return the platform-native default Hermes home path."""
+    """Return the platform-native default data home path (``~/.localstreet``)."""
     if sys.platform == "win32":
         local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
-        return base / "hermes"
-    return Path.home() / ".hermes"
+        return base / "localstreet"
+    return Path.home() / ".localstreet"
 
 
 def _hermes_home_from_env() -> Path:
-    """Resolve HERMES_HOME from the process environment only.
+    """Resolve data home from the process environment only.
 
-    Reads the ``HERMES_HOME`` env var, falling back to the platform-native
-    default.  Deliberately ignores the context-local override installed by
+    Checks ``LOCALSTREET_HOME``, then ``VEDANT_HOME``, then ``HERMES_HOME``
+    (silent back-compat), falling back to the platform-native default.
+    Deliberately ignores the context-local override installed by
     :func:`set_hermes_home_override`, so this reflects the process/launch
     scope rather than a per-task profile.  Shared by :func:`get_hermes_home`
     and :func:`get_process_hermes_home` so the two never drift.
     """
-    val = os.environ.get("HERMES_HOME", "").strip()
-    if val:
-        return Path(val)
+    for key in ("LOCALSTREET_HOME", "VEDANT_HOME", "HERMES_HOME"):
+        val = os.environ.get(key, "").strip()
+        if val:
+            return Path(val)
     return _get_platform_default_hermes_home()
 
 
 def _warn_profile_fallback_once() -> None:
     """Warn once when falling back to the default home while a profile is active.
 
-    Guard: if a non-default profile is sticky-active but ``HERMES_HOME`` is
+    Guard: if a non-default profile is sticky-active but the home env is
     unset, the fallback to the default profile is almost certainly wrong.
     """
     global _profile_fallback_warned
@@ -83,18 +85,12 @@ def _warn_profile_fallback_once() -> None:
         active = ""
     if active and active != "default":
         _profile_fallback_warned = True
-        # Write directly to stderr.  We intentionally do NOT route this
-        # through ``logging`` because (a) this function is called at
-        # module-import time from 30+ sites, often before logging is
-        # configured, and (b) root-logger propagation would double-emit
-        # on consoles where a StreamHandler is already attached.
         msg = (
-            f"[HERMES_HOME fallback] HERMES_HOME is unset but active "
+            f"[home fallback] data home is unset but active "
             f"profile is {active!r}. Falling back to {fallback_home}, which "
             f"is the DEFAULT profile — not {active!r}. Any data this "
             f"process writes will land in the wrong profile. The "
-            f"subprocess spawner should pass HERMES_HOME explicitly "
-            f"(see issue #18594)."
+            f"subprocess spawner should pass LOCALSTREET_HOME explicitly."
         )
         try:
             sys.stderr.write(msg + "\n")
@@ -104,28 +100,28 @@ def _warn_profile_fallback_once() -> None:
 
 
 def get_hermes_home() -> Path:
-    """Return the Hermes home directory (default: platform-native path).
+    """Return the data home directory (default: ``~/.localstreet``).
 
     Resolution order: context-local override (see
-    :func:`set_hermes_home_override`) → ``HERMES_HOME`` env var → the
-    platform-native default.  This is the single source of truth — all other
-    copies should import this.
+    :func:`set_hermes_home_override`) → ``LOCALSTREET_HOME`` / ``VEDANT_HOME``
+    / ``HERMES_HOME`` env vars → the platform-native default.  This is the
+    single source of truth — all other copies should import this.
 
-    When ``HERMES_HOME`` is unset but an ``active_profile`` file indicates
-    a non-default profile is active, logs a loud one-shot warning to
-    ``errors.log`` so cross-profile data corruption is diagnosable instead
-    of silent.  Behavior is unchanged otherwise — we still return
-    the platform-native default — because raising here would brick 30+ module-level
-    callers that import this at load time.  Subprocess spawners are
-    expected to propagate ``HERMES_HOME`` explicitly (see the systemd
-    template in ``hermes_cli/gateway.py`` and the kanban dispatcher in
-    ``hermes_cli/kanban_db.py``).  See https://github.com/NousResearch/hermes-agent/issues/18594.
+    When the home env is unset but an ``active_profile`` file indicates
+    a non-default profile is active, logs a loud one-shot warning so
+    cross-profile data corruption is diagnosable instead of silent.
+    Behavior is unchanged otherwise — we still return the platform-native
+    default — because raising here would brick 30+ module-level callers
+    that import this at load time.
     """
     override = get_hermes_home_override()
     if override:
         return Path(override)
 
-    if not os.environ.get("HERMES_HOME", "").strip():
+    if not any(
+        os.environ.get(k, "").strip()
+        for k in ("LOCALSTREET_HOME", "VEDANT_HOME", "HERMES_HOME")
+    ):
         _warn_profile_fallback_once()
 
     return _hermes_home_from_env()
@@ -458,7 +454,11 @@ def heal_hermes_managed_node() -> bool:
                 "-c",
                 f'source "{_NODE_BOOTSTRAP_SCRIPT}" && heal_managed_node',
             ],
-            env={**os.environ, "HERMES_HOME": str(get_hermes_home())},
+            env={
+                **os.environ,
+                "LOCALSTREET_HOME": str(get_hermes_home()),
+                "HERMES_HOME": str(get_hermes_home()),
+            },
             capture_output=True,
             timeout=300,
             check=False,
@@ -650,16 +650,16 @@ def _legacy_path_has_content(path: Path) -> bool:
 
 
 def display_hermes_home() -> str:
-    """Return a user-friendly display string for the current HERMES_HOME.
+    """Return a user-friendly display string for the current data home.
 
     Uses ``~/`` shorthand for readability::
 
-        default:  ``~/.hermes``
-        profile:  ``~/.hermes/profiles/coder``
-        custom:   ``/opt/hermes-custom``
+        default:  ``~/.localstreet``
+        profile:  ``~/.localstreet/profiles/coder``
+        custom:   ``/opt/data``
 
     Use this in **user-facing** print/log messages instead of hardcoding
-    ``~/.hermes``.  For code that needs a real ``Path``, use
+    ``~/.localstreet``.  For code that needs a real ``Path``, use
     :func:`get_hermes_home` instead.
     """
     home = get_hermes_home()
